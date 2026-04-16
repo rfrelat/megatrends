@@ -1,0 +1,7 @@
+# all data files (to be stored somewhere else)
+data/raw-data
+data/derived-data/ref
+
+biblio/
+.~lock*
+progress/megatrends_data_sources_04112026.xlsx

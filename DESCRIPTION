@@ -1,0 +1,27 @@
+Package: megatrend
+Type: Package
+Title: Research compendium for extracting megatrends maps in France 
+Version: 0.0.1
+Authors@R: c(
+    person(given   = "Romain",
+           family  = "Frelat",
+           role    = c("aut", "cre", "cph"),
+           email   = "rom.frelat@gmail.com",
+           comment = c(ORCID = "0000-0002-8631-4398")))
+Description: Map and extract key megatrend parameters
+    at the level of municipalities and a regular 10km grid.
+URL: https://github.com/rfrelat/megatrend
+BugReports: https://github.com/rfrelat/megatrend/issues
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+LazyDataCompression: xz
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports: 
+    terra,
+    stringdist,
+    utils
+Depends: 
+    R (>= 3.5.0)
+
