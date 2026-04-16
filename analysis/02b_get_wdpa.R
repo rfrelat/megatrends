@@ -15,14 +15,15 @@ library(terra) #for fast processing of large files
 
 ref_folder <- here::here("data", "derived-data", "ref")
 data_folder <- here::here("data", "raw-data", "wdpa")
-out_folder <- here::here("data", "derived-data", "indicators_csv")
+out_folder <- here::here("data", "derived-data", "clean_data")
+ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 commune <- vect(file.path(ref_folder, "commune_4326.gpkg"))
 mailles <- vect(file.path(ref_folder, "mailles_10km_4326.gpkg"))
 
 # 2. Load and clean WDPA data ------------------------------------
-if (!file.exists(file.path(data_folder, "WDPA_Apr2026_France_simp.gpkg"))) {
+if (!file.exists(file.path(out_folder, "WDPA_2026_simp.gpkg"))) {
   shpfiles <- list.files(
     data_folder,
     "^WDPA_Apr2026_Public.*shp$",
@@ -57,14 +58,14 @@ if (!file.exists(file.path(data_folder, "WDPA_Apr2026_France_simp.gpkg"))) {
   # save the intermediate output
   writeVector(
     wdpa_agg,
-    file.path(data_folder, "WDPA_Apr2026_France_agg.gpkg")
+    file.path(out_folder, "WDPA_2026_agg.gpkg")
   )
   writeVector(
     wdpa_simp,
-    file.path(data_folder, "WDPA_Apr2026_France_simp.gpkg")
+    file.path(out_folder, "WDPA_2026_simp.gpkg")
   )
 } else {
-  wdpa_simp <- vect(file.path(data_folder, "WDPA_Apr2026_France_simp.gpkg"))
+  wdpa_simp <- vect(file.path(out_folder, "WDPA_2026_simp.gpkg"))
 }
 
 # 3. Overlay and calculate statistics -----------------------------
@@ -102,7 +103,7 @@ dev.off()
 
 write.csv(
   data.frame(mailles),
-  file.path(out_folder, "MAILLE_WDPA_2026.csv"),
+  file.path(ind_folder, "MAILLE_WDPA_2026.csv"),
   row.names = FALSE
 )
 
@@ -146,6 +147,6 @@ dev.off()
 
 write.csv(
   data.frame(commune),
-  file.path(out_folder, "COMMUNE_WDPA_2026.csv"),
+  file.path(ind_folder, "COMMUNE_WDPA_2026.csv"),
   row.names = FALSE
 )

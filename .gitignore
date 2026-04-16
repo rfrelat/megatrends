@@ -1,6 +1,6 @@
 # all data files (to be stored somewhere else)
 data/raw-data
-data/derived-data/ref
+data/derived-data
 
 biblio/
 .~lock*
