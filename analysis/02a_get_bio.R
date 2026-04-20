@@ -15,8 +15,8 @@
 devtools::load_all()
 library(terra)
 
-ref_folder <- here::here("data", "derived-data", "ref")
 data_folder <- here::here("data", "raw-data", "bio")
+ref_folder <- here::here("data", "derived-data", "ref")
 out_folder <- here::here("data", "derived-data", "clean_data")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")

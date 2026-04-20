@@ -26,14 +26,18 @@ devtools::load_all()
 # 2 steps:
 
 # 1. Check, complete and verify reference list
-# source(here::here("analysis", "01_conv_ref.R"))
+source(here::here("analysis", "01a_conv_ref"))
+# additional scripts
+source(here::here("analysis", "01b_get_synonyms"))
+source(here::here("analysis", "01c_cross_ref"))
 
 # 2. Get megatrends per data sources
 # CARTOBIO: percentage of organic fields
 source(here::here("analysis", "02a_get_bio.R"))
 # WDPA: percentage of protected areas
 source(here::here("analysis", "02b_get_wdpa.R"))
-
+# HVE: High environemental value subsidies
+source(here::here("analysis", "02c_get_hve.R"))
 # to be completed ...
 
 # 3. Merge everything
