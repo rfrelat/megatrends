@@ -38,6 +38,8 @@ source(here::here("analysis", "02a_get_bio.R"))
 source(here::here("analysis", "02b_get_wdpa.R"))
 # HVE: High environemental value subsidies
 source(here::here("analysis", "02c_get_hve.R"))
+# Telepac: amount of green subsidies
+source(here::here("analysis", "02d_get_telepac.R"))
 # to be completed ...
 
 # 3. Merge everything

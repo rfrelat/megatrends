@@ -6,9 +6,6 @@
 # output:
 #   PS_NB_HVE_2024
 
-# use geocoder package, check out cool tutorial:
-# https://jessecambon.github.io/tidygeocoder/articles/geocoder_services.html
-
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
 library(data.table) #for fast processing of large files
@@ -64,7 +61,7 @@ hve$code = check_postalcode(hve$Code.Postal)
 #   ref,
 #   dfsyn = synonyms,
 #   dmax = 0.25,
-#   file.out = file.path(ref_folder, "fuzzy_Annuaire_HVE.csv")
+#   file.out = file.path(out_folder, "fuzzy_Annuaire_HVE.csv")
 # )
 # Number of simple match: 7965(87.31%)
 # Number of verified synonyms: 345(3.78%)
@@ -72,7 +69,7 @@ hve$code = check_postalcode(hve$Code.Postal)
 # Number of non-matching elements: 39(0.43%)
 
 # Once verified, load the additional list of synonyms
-checked_fuzzy <- read.csv(file.path(ref_folder, "verified_Annuaire_HVE.csv"))
+checked_fuzzy <- read.csv(file.path(out_folder, "verified_Annuaire_HVE.csv"))
 keepR <- checked_fuzzy$verified == "ok" & !is.na(checked_fuzzy$ref_id)
 checked_fuzzy <- checked_fuzzy[keepR, ] # 776 rows
 dfsyn <- data.frame(
@@ -150,7 +147,7 @@ plot(
   y = "NB_HVE_2024",
   border = NA,
   breaks = c(0, 1, 5, 10, 50, 150),
-  main = "Number of HVE - 2024 - Commune"
+  main = "Number of HVE - 2024 - Maille"
 )
 dev.off()
 
@@ -164,6 +161,8 @@ write.csv(
 ## Test geocoding
 ## osm find very few additional match
 ## arcgis has fuzzy match that are not consistent, some are really good but miss easy ones...
+## use geocoder package, check out cool tutorial:
+## https://jessecambon.github.io/tidygeocoder/articles/geocoder_services.html
 
 # library(tidygeocoder)
 #
