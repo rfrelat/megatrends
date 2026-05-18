@@ -40,6 +40,9 @@ source(here::here("analysis", "02b_get_wdpa.R"))
 source(here::here("analysis", "02c_get_hve.R"))
 # Telepac: amount of green subsidies
 source(here::here("analysis", "02d_get_telepac.R"))
+# Pesticide: Rigal and Perrot 2025
+source(here::here("analysis", "02e_get_pesticide.R"))
+
 # to be completed ...
 
 # 3. Merge everything
