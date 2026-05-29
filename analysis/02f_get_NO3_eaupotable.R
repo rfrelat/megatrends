@@ -15,7 +15,6 @@ library(terra)
 
 data_folder <- here::here("data", "raw-data", "eaupotable", "dis-2025")
 ref_folder <- here::here("data", "derived-data", "ref")
-out_folder <- here::here("data", "derived-data", "clean_data")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
@@ -118,7 +117,7 @@ for (i in names(commune)[-(1:9)]) {
 
 write.csv(
   data.frame(commune),
-  file.path(out_folder, "COMMUNE_NITRATE_2025.csv"),
+  file.path(ind_folder, "COMMUNE_NITRATE_2025.csv"),
   row.names = FALSE
 )
 
@@ -158,7 +157,7 @@ for (i in names(mailles)[-(1:3)]) {
 
 write.csv(
   data.frame(mailles),
-  file.path(out_folder, "MAILLE_NITRATE_2025.csv"),
+  file.path(ind_folder, "MAILLE_NITRATE_2025.csv"),
   row.names = FALSE
 )
 
