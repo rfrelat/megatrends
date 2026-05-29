@@ -5,3 +5,6 @@ data/derived-data
 biblio/
 .~lock*
 progress/megatrends_data_sources_04112026.xlsx
+
+analysis/dev*.R
+analysis/check*.R

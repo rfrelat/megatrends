@@ -42,6 +42,10 @@ source(here::here("analysis", "02c_get_hve.R"))
 source(here::here("analysis", "02d_get_telepac.R"))
 # Pesticide: Rigal and Perrot 2025
 source(here::here("analysis", "02e_get_pesticide.R"))
+# Nitrate: EauFrance 2024: very patchy
+# source(here::here("analysis", "02fbis_get_NO3_eaufrance.R"))
+# Nitrate: EauPotable 2025
+source(here::here("analysis", "02f_get_NO3_eaupotable.R"))
 
 # to be completed ...
 
