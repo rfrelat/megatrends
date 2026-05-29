@@ -46,6 +46,8 @@ source(here::here("analysis", "02e_get_pesticide.R"))
 # source(here::here("analysis", "02fbis_get_NO3_eaufrance.R"))
 # Nitrate: EauPotable 2025
 source(here::here("analysis", "02f_get_NO3_eaupotable.R"))
+# RPG 2023: ag practices
+source(here::here("analysis", "02g_get_rpg.R"))
 
 # to be completed ...
 

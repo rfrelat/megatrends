@@ -19,9 +19,11 @@ LazyDataCompression: xz
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
+    data.table,
     terra,
     stringdist,
-    utils
+    utils,
+    vegan
 Depends: 
     R (>= 3.5.0)
 
