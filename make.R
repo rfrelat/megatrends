@@ -48,6 +48,8 @@ source(here::here("analysis", "02e_get_pesticide.R"))
 source(here::here("analysis", "02f_get_NO3_eaupotable.R"))
 # RPG 2023: ag practices
 source(here::here("analysis", "02g_get_rpg.R"))
+# Agreste 2020: Recensement agricole
+source(here::here("analysis", "02h_get_agreste.R"))
 
 # to be completed ...
 

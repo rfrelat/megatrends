@@ -79,7 +79,6 @@ for (i in keepC) {
   dev.off()
 }
 
-
 write.csv(
   data.frame(mailles),
   file.path(out_folder, "MAILLE_PESTICIDE.csv"),
