@@ -35,9 +35,15 @@ for (i in c("commune", "maille")) {
 
   # calculate new indicators when needed
   # percentage area of organic farming
+  maxarea <- ifelse(
+    ind$CULTIVATED_AREA_HA < ind$BIO_AREA_HA_2024,
+    ind$BIO_AREA_HA_2024,
+    ind$CULTIVATED_AREA_HA
+  )
+
   ind$BIO_AREA_PCT_2024 <- ifelse(
-    ind$CULTIVATED_AREA_HA > 0,
-    ind$BIO_AREA_HA_2024 / ind$CULTIVATED_AREA_HA,
+    maxarea > 0,
+    ind$BIO_AREA_HA_2024 / maxarea * 100,
     NA
   )
 

@@ -1,0 +1,57 @@
+/*-- scss:defaults --*/
+
+// fonts
+
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
+
+$font-family-monospace: "Fira Code", monospace !default;
+
+/*-- scss:rules --*/
+
+.container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding-top: 56.25%;
+}
+
+.container-43 {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  padding-top: 72.50%;
+}
+
+.responsive-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+}
+
+p.author a {
+  color: #343A40;
+}
+
+p.affiliation a {
+  color: #343A40;
+}
+
+nav.quarto-page-breadcrumbs ol li a {
+  color: #343A40;
+}
+
+caption.table-caption {
+  text-align: left;
+}
+
+figure.quarto-float-tbl figcaption.quarto-float-caption-top {
+  text-align: left;
+}
+
+figure.quarto-float div.leaflet-control {
+  text-align: left;
+}

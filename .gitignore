@@ -9,3 +9,7 @@ progress/megatrends_data_sources_04112026.xlsx
 analysis/dev*
 analysis/check*.R
 analysis/.vdoc*
+/.quarto/
+**/*.quarto_ipynb
+
+_freeze/

@@ -58,4 +58,6 @@ source(here::here("analysis", "02i_get_croptation.R"))
 # 3. Merge everything
 source(here::here("analysis", "03_merge_indicators.R"))
 # to be completed
-# quarto::quarto_render("analysis/03_political_stringency.qmd")
+
+# 4. Overview
+quarto::quarto_render("analysis/04_political_stringency.qmd")

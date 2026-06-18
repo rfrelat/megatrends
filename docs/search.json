@@ -1,0 +1,23 @@
+[
+  {
+    "objectID": "analysis/04_political_stringency.html",
+    "href": "analysis/04_political_stringency.html",
+    "title": "Summary of the political stringency variables",
+    "section": "",
+    "text": "The objective of this document is to explore the current state of indicators on political stringency in France.\nOne of the issue is to remove the size effect: large agricultural commune will tend to have higher indicators.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nDescription\nYear\nUnit\nSource\n\n\n\n\nBIO_AREA_PCT_2024\npercentage of organic farming over the total cultivated area (CULTIVATED_AREA_HA)\n2024\n%\nCartobio + RPG\n\n\nPROT_AREA_PCT_2026\nPercentage of protected area relative to the area of the spatial unit\n2026\n%\nWDPA\n\n\nHVE_N_2024\nnumber of ‘high environmental certified’\n2024\nNA\nMASA\n\n\nGREENSUBS_kEUR_per_HA_2022\nsubsidies per cultivated area\n2022\nkEUR/ha\nTelepac\n\n\nPESTICIDE_EXPOSURE_2022\nCombined exposure in toxic, carcinogenic, mutagenic, reprotoxic active substances from the scaled concentrations in air and water and treatment intensity index, designed to vary between 0 and 3 (historical data between 0 and 1.5)\n2022\nNA\nRigal and Perrot 2025\n\n\nNO3_mg_per_l_2025\nAverage nitrate level measured in drinking water distribution of municipalities\n2025\nmg/l\nEauPotable\n\n\nCROP_DIV_SHANNON_2023\nShannon index calculated with all RPG classes\n2023\nNA\nRPG\n\n\nCROP_DOMINANT_2023\nDominant crop by municipality in term of surface area\n2023\nNA\nRPG\n\n\nFALLOW_AREA_PCT_2023\n% of fallow relative to the total area of the municipality\n2023\n%\nRPG\n\n\nCROPROT_INV_SIM_1523\nInverse Simpson index of crop rotation diversity\n2015-2023\nNA\nRPG successions\n\n\n\n\n\nFull indicator tables is stored in Github"
+  },
+  {
+    "objectID": "analysis/04_political_stringency.html#introduction",
+    "href": "analysis/04_political_stringency.html#introduction",
+    "title": "Summary of the political stringency variables",
+    "section": "",
+    "text": "The objective of this document is to explore the current state of indicators on political stringency in France.\nOne of the issue is to remove the size effect: large agricultural commune will tend to have higher indicators.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nName\nDescription\nYear\nUnit\nSource\n\n\n\n\nBIO_AREA_PCT_2024\npercentage of organic farming over the total cultivated area (CULTIVATED_AREA_HA)\n2024\n%\nCartobio + RPG\n\n\nPROT_AREA_PCT_2026\nPercentage of protected area relative to the area of the spatial unit\n2026\n%\nWDPA\n\n\nHVE_N_2024\nnumber of ‘high environmental certified’\n2024\nNA\nMASA\n\n\nGREENSUBS_kEUR_per_HA_2022\nsubsidies per cultivated area\n2022\nkEUR/ha\nTelepac\n\n\nPESTICIDE_EXPOSURE_2022\nCombined exposure in toxic, carcinogenic, mutagenic, reprotoxic active substances from the scaled concentrations in air and water and treatment intensity index, designed to vary between 0 and 3 (historical data between 0 and 1.5)\n2022\nNA\nRigal and Perrot 2025\n\n\nNO3_mg_per_l_2025\nAverage nitrate level measured in drinking water distribution of municipalities\n2025\nmg/l\nEauPotable\n\n\nCROP_DIV_SHANNON_2023\nShannon index calculated with all RPG classes\n2023\nNA\nRPG\n\n\nCROP_DOMINANT_2023\nDominant crop by municipality in term of surface area\n2023\nNA\nRPG\n\n\nFALLOW_AREA_PCT_2023\n% of fallow relative to the total area of the municipality\n2023\n%\nRPG\n\n\nCROPROT_INV_SIM_1523\nInverse Simpson index of crop rotation diversity\n2015-2023\nNA\nRPG successions\n\n\n\n\n\nFull indicator tables is stored in Github"
+  },
+  {
+    "objectID": "analysis/04_political_stringency.html#overall-correlation",
+    "href": "analysis/04_political_stringency.html#overall-correlation",
+    "title": "Summary of the political stringency variables",
+    "section": "Overall correlation",
+    "text": "Overall correlation\n\ncommunemaille\n\n\n\n\n\n\n\n\n\n\nFigure 1: Correlation among megatrends per commune\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nFigure 2: Correlation among megatrends per maille"
+  }
+]

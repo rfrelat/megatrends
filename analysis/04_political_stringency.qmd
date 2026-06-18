@@ -1,0 +1,109 @@
+---
+title: "Summary of the political stringency variables"
+author: Romain Frelat
+date: today
+format: 
+  html:
+    toc: true
+execute:
+  echo: false
+  warning: false
+---
+
+
+## Introduction
+
+The objective of this document is to explore the current state of indicators on political stringency in France.  
+
+One of the issue is to remove the *size effect*: large agricultural commune will tend to have higher indicators.
+
+### Calculated indicators 
+
+```{r}
+#| label: setup
+devtools::load_all()
+
+ref_folder <- here::here("data", "derived-data", "ref")
+ind_folder <- here::here("data", "derived-data", "indicators_csv")
+
+meta <- readxl::read_xlsx(
+  here::here("data", "derived-data", "megatrends_metadata.xlsx")
+)
+ps_crit <- grepl("stringency", meta$Megatrend)
+ind_crit <- meta$Indicator == "yes"
+colC <- c(
+  "Name",
+  "Description",
+  "Year",
+  "Unit",
+  "Source"
+)
+ps <- meta[ps_crit & ind_crit, colC]
+knitr::kable(ps)
+```
+
+Full indicator tables is stored in [Github](https://github.com/rfrelat/megatrends/blob/main/progress/megatrends_RF.xlsx)
+
+```{r}
+#| label: merge-commune
+# load shapefile
+commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
+# load merged indicators
+outC <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
+```
+
+
+```{r}
+# add Paul data
+paul_db <- read.csv(
+  here::here("data", "derived-data", "paul", "commune_metrics_2023.csv")
+)
+m0 <- match(outC$INSEE_COM, paul_db$INSEE_COM)
+# table(is.na(m0)) # there are 3135 commune missing
+# select the interesting column
+keep <- 12:ncol(paul_db)
+# add them to outC
+outC[names(paul_db)[keep]] <- paul_db[m0, keep]
+```
+
+```{r}
+#| label: merge-mailles
+# load shapefile
+mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+
+# load merged indicators
+outM <- read.csv(file.path(ind_folder, "Dataset_maille.csv"))
+```
+
+
+## Overall correlation
+
+::: {.panel-tabset}
+
+## commune
+
+```{r}
+#| label: fig-corr-commune
+#| fig-cap: "Correlation among megatrends per commune"
+indC <- outC[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
+
+names(indC) <- sapply(strsplit(names(indC), "_"), function(x) {
+  paste(x[1], x[2], sep = "\n")
+})
+pairs(indC, lower.panel = panel.smooth, upper.panel = panel.cor)
+```
+
+## maille
+
+```{r}
+#| label: fig-corr-maille
+#| fig-cap: "Correlation among megatrends per maille"
+indM <- outM[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
+
+names(indM) <- sapply(strsplit(names(indM), "_"), function(x) {
+  paste(x[1], x[2], sep = "\n")
+})
+pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
+```
+
+::: 
