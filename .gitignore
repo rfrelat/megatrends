@@ -6,5 +6,6 @@ biblio/
 .~lock*
 progress/megatrends_data_sources_04112026.xlsx
 
-analysis/dev*.R
+analysis/dev*
 analysis/check*.R
+analysis/.vdoc*

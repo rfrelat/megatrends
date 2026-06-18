@@ -4,7 +4,10 @@
 # HVE 2025 from https://www.data.gouv.fr/datasets/annuaire-des-exploitations-certifiees-haute-valeur-environnementale
 #   Annuaire des exploitations HVE_Juillet 2024.xlsx
 # output:
-#   PS_NB_HVE_2024
+#   indicators_csv/MAILLE_HVE_N_2024.csv
+#   indicators_csv/COMMUNE_HVE_N_2024.csv
+#   figure/HVE_N_2024_MAILLE.png
+#   figure/HVE_N_2024_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -96,119 +99,65 @@ n_hve <- table(hve$INSEE_COM)
 ## per commune
 m0 <- match(commune$INSEE_COM, names(n_hve))
 
-commune$NB_HVE_2024 <- as.numeric(n_hve)[m0]
-commune$NB_HVE_2024[is.na(commune$NB_HVE_2024)] <- 0
-# boxplot(commune$NB_HVE_2024)
+commune$HVE_N_2024 <- as.numeric(n_hve)[m0]
+commune$HVE_N_2024[is.na(commune$HVE_N_2024)] <- 0
+# boxplot(commune$HVE_N_2024)
 
 png(
-  file = file.path(fig_folder, "NB_HVE_2024_COMMUNE.png"),
+  file = file.path(fig_folder, "HVE_N_2024_COMMUNE.png"),
   width = 1200,
   height = 1000,
   res = 200
 )
 plot(
   commune,
-  y = "NB_HVE_2024",
+  y = "HVE_N_2024",
   border = NA,
-  breaks = c(0, 1, 5, 10, 50, 150),
+  breaks = 6,
+  breakby = "cases",
   main = "Number of HVE - 2024 - Commune",
 )
 dev.off()
 
 write.csv(
   data.frame(commune),
-  file.path(ind_folder, "COMMUNE_NB_HVE_2024.csv"),
+  file.path(ind_folder, "COMMUNE_HVE_N_2024.csv"),
   row.names = FALSE
 )
 
 ## per maille 10km
 # load the data
-# com_csv <- read.csv(file.path(ind_folder, "COMMUNE_NB_HVE_2024.csv"))
-# commune$NB_HVE_2024 <- com_csv$NB_HVE_2024
+# com_csv <- read.csv(file.path(ind_folder, "COMMUNE_HVE_N_2024.csv"))
+# commune$HVE_N_2024 <- com_csv$HVE_N_2024
 # make sure the cross match
 table(row.names(cross) == mailles$cd_sig, useNA = "ifany")
 table(colnames(cross) == commune$INSEE_COM, useNA = "ifany")
 
 # weighted average
-cross_nb <- t(cross) * commune$NB_HVE_2024
+cross_nb <- t(cross) * commune$HVE_N_2024
 sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-mailles$NB_HVE_2024 <- sum_nb / mailles$AREA_HA
+mailles$HVE_N_2024 <- sum_nb / mailles$AREA_HA
 
-# boxplot(mailles$NB_HVE_2024)
+# boxplot(mailles$HVE_N_2024)
 
 png(
-  file = file.path(fig_folder, "NB_HVE_2024_MAILLE.png"),
+  file = file.path(fig_folder, "HVE_N_2024_MAILLE.png"),
   width = 1200,
   height = 1000,
   res = 200
 )
 plot(
   mailles,
-  y = "NB_HVE_2024",
+  y = "HVE_N_2024",
   border = NA,
-  breaks = c(0, 1, 5, 10, 50, 150),
+  breaks = 6,
+  breakby = "cases",
   main = "Number of HVE - 2024 - Maille"
 )
 dev.off()
 
 write.csv(
   data.frame(mailles),
-  file.path(ind_folder, "MAILLE_NB_HVE_2024.csv"),
+  file.path(ind_folder, "MAILLE_HVE_N_2024.csv"),
   row.names = FALSE
 )
-
-## Extra -------------------------------------------------
-## Test geocoding
-## osm find very few additional match
-## arcgis has fuzzy match that are not consistent, some are really good but miss easy ones...
-## use geocoder package, check out cool tutorial:
-## https://jessecambon.github.io/tidygeocoder/articles/geocoder_services.html
-
-# library(tidygeocoder)
-#
-# geocode with OSM
-# missed <- is.na(hve$INSEE_COM)
-# missing <- hve[missed, ]
-# missing$Pays = "France"
-
-# geocheck <- tidygeocoder::geocode(
-#   missing,
-#   street = Adresse,
-#   city = Commune,
-#   state = Région,
-#   county = Département,
-#   postalcode = Code.Postal,
-#   country = Pays,
-#   method = "osm"
-# )
-
-# pt_osm <- vect(geocheck, geom = c("long", "lat"), crs = "EPSG:4326")
-# com_osm <- extract(commune, pt_osm)
-
-# hve$INSEE_COM[missed] <- com_osm$INSEE_COM
-
-# # geocode with ArcGIS
-# missed <- is.na(hve$INSEE_COM)
-# prop.table(table(missed)) # 1454 missing
-# missing <- hve[missed, ]
-# missing$inline <- paste(
-#   missing$Adresse,
-#   missing$Code.Postal,
-#   missing$Commune,
-#   sep = ", "
-# )
-# geocheck_arcgis <- tidygeocoder::geocode(
-#   missing,
-#   address = inline,
-#   method = "arcgis",
-#   full_results = TRUE
-# )
-
-# # set a threshold score of 90
-# th_score <- 90
-# geocheck_arcgis$long[geocheck_arcgis$score <= th_score] <- NA
-# geocheck_arcgis$lat[geocheck_arcgis$score <= th_score] <- NA
-# pt_arcgis <- vect(geocheck_arcgis, geom = c("long", "lat"), crs = "EPSG:4326")
-# com_arcgis <- extract(commune, pt_arcgis)
-
-# hve$INSEE_COM[missed] <- com_osm$INSEE_COM

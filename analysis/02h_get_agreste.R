@@ -3,10 +3,10 @@
 # input:
 #   data_Agreste_Commune.csv from https://stats.agriculture.gouv.fr/cartostat/
 # output:
-#   indicators_csv/COMMUNE_NITRATE_2025.csv
-#   indicators_csv/MAILLE_NITRATE_2025.csv
-#   figure/NITRATE_2025_XX_COMMUNE.png
-#   figure/NITRATE_2025_XX_MAILLE.png
+#   indicators_csv/COMMUNE_AGRESTE_2020.csv
+#   indicators_csv/MAILLE_AGRESTE_2020.csv
+#   figure/AGRESTE_XX_COMMUNE.png
+#   figure/AGRESTE_XX_MAILLE.png
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -14,7 +14,6 @@ library(terra)
 
 data_folder <- here::here("data", "raw-data", "agreste")
 ref_folder <- here::here("data", "derived-data", "ref")
-out_folder <- here::here("data", "derived-data", "clean_data")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
@@ -63,59 +62,59 @@ keepC <- c(
 )
 
 labC <- c(
-  "Perc_below40_2020",
-  "PBS_kEUR_2020",
-  "N_farms_2020",
-  "SAU_ha_2020"
+  "AGRESTE_Below40_PCT_2020",
+  "AGRESTE_PBS_kEUR_2020",
+  "AGRESTE_Nfarms_2020",
+  "AGRESTE_SAU_HA_2020"
 )
 
-# clean the name and code
-ag$name <- clean_city_names(ag$Libellé)
-ag$code <- check_postalcode(ag$Code)
-
-# change INSEE code to code (instead of postal code, not here)e
-synonyms$code <- synonyms$id
-
-
 # 3. Merge with commune -----------------------------
-
-m0 <- simple_match_cities(ag, ref)
-table(is.na(m0)) # only 352 missing (1%)
-
-# super long, not sure why
-# m1 <- match_cities(
-#   ag,
-#   ref,
-#   dfsyn = synonyms,
-#   dmax = 0.25,
-#   file.out = file.path(out_folder, "fuzzy_Agreste.csv")
-# )
-# Number of simple match: 34616 (99%)
-# Number of verified synonyms: 0 (0%)
-# Number of fuzzy match: 0 (0%)
-# Number of non-matching elements: 352(1%)
-
-## export --------------------------------------------------
-## per commune
 m0 <- match(commune$INSEE_COM, ag$Code)
+# table(is.na(m0)) # only 11 missing
+# table(duplicated(m0[!is.na(m0)])) # no duplicates
 
 commune[, labC] <- ag[m0, keepC]
 
-for (i in labC) {
-  filei <- paste0("AGRESTE_", toupper(i), "_COMMUNE.png")
+commune$AGRESTE_PRODUCTIVITY_kEUR_per_ha_2020 <- ifelse(
+  commune$AGRESTE_SAU_HA_2020 > 0,
+  commune$AGRESTE_PBS_kEUR_2020 / commune$AGRESTE_SAU_HA_2020,
+  NA
+)
+
+commune$AGRESTE_FARMDENSITY_per_ha_2020 <- ifelse(
+  commune$AREA_HA > 0,
+  commune$AGRESTE_Nfarms_2020 / commune$AREA_HA,
+  NA
+)
+
+var <- c(
+  labC,
+  "AGRESTE_PRODUCTIVITY_kEUR_per_ha_2020",
+  "AGRESTE_FARMDENSITY_per_ha_2020"
+)
+
+for (i in var) {
+  filei <- paste0(toupper(i), "_COMMUNE.png")
   png(
     file = file.path(fig_folder, filei),
     width = 1200,
     height = 1000,
     res = 200
   )
-  plot(commune, y = i, border = NA, main = paste("Agreste -", i, "- Commune"))
+  plot(
+    commune,
+    y = i,
+    border = NA,
+    main = paste(i, "- Commune"),
+    breaks = 6,
+    breakby = "cases"
+  )
   dev.off()
 }
 
 write.csv(
   data.frame(commune),
-  file.path(out_folder, "COMMUNE_AGRESTE.csv"),
+  file.path(ind_folder, "COMMUNE_AGRESTE_2020.csv"),
   row.names = FALSE
 )
 
@@ -128,27 +127,35 @@ write.csv(
 # table(colnames(cross) == commune$INSEE_COM, useNA = "ifany")
 
 # weighted average
-for (i in labC) {
+for (i in var) {
   cross_nb <- t(cross) * data.frame(commune)[, i]
   sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-  mailles[, i] <- sum_nb / mailles$AREA_HA
+  nb <- apply(!is.na(cross_nb), 2, sum, na.rm = TRUE)
+  mailles[, i] <- ifelse(nb == 0, NA, sum_nb / mailles$AREA_HA)
 }
 
-for (i in labC) {
-  filei <- paste0("AGRESTE_", toupper(i), "_MAILLE.png")
+for (i in var) {
+  filei <- paste0(toupper(i), "_MAILLE.png")
   png(
     file = file.path(fig_folder, filei),
     width = 1200,
     height = 1000,
     res = 200
   )
-  plot(mailles, y = i, border = NA, main = paste("Agreste -", i, "- Maille"))
+  plot(
+    mailles,
+    y = i,
+    border = NA,
+    main = paste(i, "- Maille"),
+    breaks = 6,
+    breakby = "cases"
+  )
   dev.off()
 }
 
 
 write.csv(
   data.frame(mailles),
-  file.path(out_folder, "MAILLE_AGRESTE.csv"),
+  file.path(ind_folder, "MAILLE_AGRESTE_2020.csv"),
   row.names = FALSE
 )

@@ -26,8 +26,8 @@ mailles$id <- mailles$cd_sig
 
 # RPG categories
 fallow <- c("J5M", "J6P", "J6S", "JAC", "JNO")
-noag <- c("BFP", "BFS", "BOR", "BTA", "SNA", "SNE")
-grass <- c("BOP", "SPH", "SPL", "PPH", "PRL", "PTR", "RGA")
+noag <- c("BFP", "BFS", "BOR", "BTA", "SNA") #"SNE"
+# grass <- c("BOP", "SPH", "SPL", "PPH", "PRL", "PTR", "RGA")
 
 # 2. Load and clean RPG data ------------------------------------
 rpg <- vect(
@@ -35,7 +35,7 @@ rpg <- vect(
 )
 
 # remove non agricultural fields
-crops <- rpg[!rpg$CODE_CULTU %in% c(noag, grass)]
+crops <- rpg[!rpg$CODE_CULTU %in% noag]
 
 # select only fallow
 jachere <- rpg[rpg$CODE_CULTU %in% fallow]
@@ -46,7 +46,7 @@ jachere <- rpg[rpg$CODE_CULTU %in% fallow]
 
 # Same process for commune and maille
 for (i in c("Commune", "Maille")) {
-  print(i)
+  # print(i)
   if (i == "Commune") {
     shp <- commune
   } else {
@@ -58,13 +58,13 @@ for (i in c("Commune", "Maille")) {
   intF$calc_area <- expanse(intF) * 0.0001
   sum_areaF <- tapply(intF$calc_area, intF$id, sum, na.rm = TRUE)
 
-  shp$FALLOW_AREA_HA <- ifelse(
+  shp$FALLOW_AREA_HA_2023 <- ifelse(
     shp$id %in% names(sum_areaF),
     sum_areaF[match(shp$id, names(sum_areaF))],
     0
   )
 
-  shp$FALLOW_AREA_PCT <- (shp$FALLOW_AREA_HA / shp$AREA_HA * 100) |>
+  shp$FALLOW_AREA_PCT_2023 <- (shp$FALLOW_AREA_HA_2023 / shp$AREA_HA * 100) |>
     round(2)
 
   fi <- paste0("RPG_FALLOW_AREA_2023_", toupper(i), ".png")
@@ -76,13 +76,13 @@ for (i in c("Commune", "Maille")) {
   )
   plot(
     shp,
-    y = "FALLOW_AREA_PCT",
+    y = "FALLOW_AREA_PCT_2023",
     border = NA,
     main = paste0("Fallow area (%) - 2023 - ", i)
   )
   dev.off()
 
-  # agricultural area - we want:
+  # agricultural area, we want:
   # - the agricultural surface (SAU)
   # - the dominant crop
   # - the shanon diversity of crops
@@ -94,14 +94,14 @@ for (i in c("Commune", "Maille")) {
   # total cultivated area
   sum_areaC <- tapply(intC$calc_area, intC$id, sum, na.rm = TRUE)
 
-  shp$CULTIVATED_AREA_HA <- ifelse(
+  shp$CULTIVATED_AREA_HA_2023 <- ifelse(
     shp$id %in% names(sum_areaC),
     sum_areaC[match(shp$id, names(sum_areaC))],
     0
   )
 
-  shp$CULTIVATED_AREA_PCT <- (shp$CULTIVATED_AREA_HA / shp$AREA_HA * 100) |>
-    round(2)
+  # fmt: skip
+  shp$CULTIVATED_AREA_PCT_2023 <- round(shp$CULTIVATED_AREA_HA_2023 / shp$AREA_HA * 100, 2)
 
   fi <- paste0("RPG_CULTIVATED_AREA_2023_", toupper(i), ".png")
   png(
@@ -112,7 +112,7 @@ for (i in c("Commune", "Maille")) {
   )
   plot(
     shp,
-    y = "CULTIVATED_AREA_PCT",
+    y = "CULTIVATED_AREA_PCT_2023",
     border = NA,
     main = paste0("Cultivated area (%) - 2023 - ", i)
   )
@@ -131,7 +131,7 @@ for (i in c("Commune", "Maille")) {
   dom <- colnames(area_crop)[apply(area_crop, 1, which.max)]
   # table(dom)
 
-  shp$DOMINANT_CROP <- ifelse(
+  shp$CROP_DOMINANT_2023 <- ifelse(
     shp$id %in% row.names(area_crop),
     dom[match(shp$id, row.names(area_crop))],
     NA
@@ -146,7 +146,7 @@ for (i in c("Commune", "Maille")) {
   )
   plot(
     shp,
-    y = "DOMINANT_CROP",
+    y = "CROP_DOMINANT_2023",
     border = NA,
     main = paste0("Dominant crop - 2023 - ", i)
   )
@@ -157,7 +157,7 @@ for (i in c("Commune", "Maille")) {
   area_crop[is.na(area_crop)] <- 0
   shannon <- vegan::diversity(area_crop, index = "shannon")
 
-  shp$CROP_DIV_SHANNON <- ifelse(
+  shp$CROP_DIV_SHANNON_2023 <- ifelse(
     shp$id %in% row.names(area_crop),
     shannon[match(shp$id, row.names(area_crop))],
     NA
@@ -172,7 +172,7 @@ for (i in c("Commune", "Maille")) {
   )
   plot(
     shp,
-    y = "CROP_DIV_SHANNON",
+    y = "CROP_DIV_SHANNON_2023",
     border = NA,
     main = paste0("Crop diversity, Shannon - 2023 - ", i)
   )
@@ -183,27 +183,24 @@ for (i in c("Commune", "Maille")) {
   wsum <- tapply(intC$SURF_PARC * intC$calc_area, intC$id, sum, na.rm = TRUE)
   field_size <- wsum / sum_areaC
 
-  shp$MEAN_FIELD_SIZE_HA <- ifelse(
+  shp$FIELD_SIZE_MEAN_HA_2023 <- ifelse(
     shp$id %in% names(wsum),
     field_size[match(shp$id, names(wsum))],
     0
   )
 
   med <- tapply(intC$SURF_PARC, intC$id, median, na.rm = TRUE)
-  shp$MEDIAN_FIELD_SIZE_HA <- ifelse(
+  shp$FIELD_SIZE_MEDIAN_HA_2023 <- ifelse(
     shp$id %in% names(med),
     med[match(shp$id, names(med))],
     0
   )
 
   # remove areas with no field
-  shp$MEDIAN_FIELD_SIZE_HA[shp$CULTIVATED_AREA_HA == 0] <- NA
-  shp$MEAN_FIELD_SIZE_HA[shp$CULTIVATED_AREA_HA == 0] <- NA
+  shp$FIELD_SIZE_MEDIAN_HA_2023[shp$CULTIVATED_AREA_HA_2023 == 0] <- NA
+  shp$FIELD_SIZE_MEAN_HA_2023[shp$CULTIVATED_AREA_HA_2023 == 0] <- NA
 
-  shp$MEAN_FIELD_SIZE_LOG <- log1p(shp$MEAN_FIELD_SIZE_HA)
-  shp$MEDIAN_FIELD_SIZE_LOG <- log1p(shp$MEDIAN_FIELD_SIZE_HA)
-
-  fi <- paste0("RPG_MEAN_FIELDSIZE_2023_", toupper(i), ".png")
+  fi <- paste0("RPG_FIELDSIZE_MEDIAN_2023_", toupper(i), ".png")
   png(
     file = file.path(fig_folder, fi),
     width = 1200,
@@ -212,31 +209,19 @@ for (i in c("Commune", "Maille")) {
   )
   plot(
     shp,
-    y = "MEAN_FIELD_SIZE_LOG",
+    y = "FIELD_SIZE_MEDIAN_HA_2023",
     border = NA,
-    main = paste0("Mean field size (log+1, ha) - 2023 - ", i)
-  )
-  dev.off()
-
-  fi <- paste0("RPG_MEDIAN_FIELDSIZE_2023_", toupper(i), ".png")
-  png(
-    file = file.path(fig_folder, fi),
-    width = 1200,
-    height = 1000,
-    res = 200
-  )
-  plot(
-    shp,
-    y = "MEDIAN_FIELD_SIZE_LOG",
-    border = NA,
-    main = paste0("Median field size (log+1, ha) - 2023 - ", i)
+    breaks = 6,
+    breakby = "cases",
+    main = paste0("Median field size (ha) - 2023 - ", i)
   )
   dev.off()
 
   # export
   out_fi <- paste0(toupper(i), "_RPG_2023.csv")
+
   write.csv(
-    data.frame(shp),
+    data.frame(shp)[, names(shp) != "id"],
     file.path(ind_folder, out_fi),
     row.names = FALSE
   )

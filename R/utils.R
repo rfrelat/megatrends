@@ -29,3 +29,38 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...) {
     text(xstar, ystar, Signif, cex = cex, col = 2)
   }
 }
+
+
+panel.eqline <- function(
+  x,
+  y,
+  col = par("col"),
+  bg = NA,
+  pch = par("pch"),
+  cex = 1,
+  col.smooth = 2,
+  span = 2 / 3,
+  iter = 3,
+  ...
+) {
+  col <- ifelse(x > y, "#1b9e77", "#7570b3")
+  points(x, y, pch = pch, col = col, bg = col, cex = cex)
+  abline(a = 0, b = 1, lty = 3)
+  ok <- is.finite(x) & is.finite(y)
+  if (any(ok)) {
+    lines(
+      stats::lowess(x[ok], y[ok], f = span, iter = iter),
+      col = col.smooth,
+      ...
+    )
+  }
+}
+
+# function to remove some column
+# and handle single column output
+rm_col <- function(x, col) {
+  sel <- !names(x) %in% col
+  y <- data.frame(x[, sel])
+  names(y) <- names(x)[sel]
+  return(y)
+}

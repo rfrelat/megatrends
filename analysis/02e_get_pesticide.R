@@ -9,8 +9,8 @@
 #     all_pesticide_exposure: Combined exposure in toxic, carcinogenic, mutagenic, reprotoxic active substances from the scaled concentrations in air and water and treatment intensity index, designed to vary between 0 and 3 (historical data between 0 and 1.5)
 #
 # output:
-#   indicators_csv/MAILLE_Pesticide.csv
-#   indicators_csv/COMMUNE_Pesticide.csv
+#   indicators_csv/MAILLE_PESTICIDE.csv
+#   indicators_csv/COMMUNE_PESTICIDE.csv
 #   figure/PESTICIDE_XX_MAILLE.png
 #   figure/PESTICIDE_XX_COMMUNE.png
 
@@ -31,12 +31,19 @@ commune <- project(commune, "EPSG:2154")
 mailles <- project(mailles, "EPSG:2154")
 
 # 2. Load pesticide data ------------------------------------
+# combined 2013 - 2022 data
+# exp <- vect(file.path(
+#   data_folder,
+#   "Combined_exposure_to_active_substance_in_use_air_and_water.gpkg"
+# ))
+
+# better: select only 2022 data
 exp <- vect(file.path(
   data_folder,
-  "Combined_exposure_to_active_substance_in_use_air_and_water.gpkg"
+  "Yearly_exposure_to_active_substance_in_use_air_and_water.gpkg"
 ))
-names(exp)
-plot(exp, y = "mean_concentration")
+exp <- exp[exp$year == 2022, ]
+plot(exp, y = "mean_tii", border = NA)
 
 # 3. Overlay and calculate statistics -----------------------------
 # the intersect() step takes a very long time to compute at the French scale
@@ -54,11 +61,11 @@ suma <- tapply(intM$pa, intM$cd_sig, sum, na.rm = TRUE)
 #fmt:skip
 out <- data.frame(
   "cd_sig" = names(npix),
-  "npix" = as.numeric(npix),
-  "mean_concentration_air" = tapply(intM$mean_concentration*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
-  "mean_concentration_water" = tapply(intM$mean_concentration_water*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
-  "treatment_intensity_index" = tapply(intM$mean_itt*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
-  "pesticide_exposure" = tapply(intM$all_pesticide_exposure*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma
+  "PESTICIDE_NPIXELS_2022" = as.numeric(npix),
+  "PESTICIDE_AIR_ng_per_m3_2022" = tapply(intM$mean_concentration_air*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
+  "PESTICIDE_WATER_ng_per_m3_2022" = tapply(intM$mean_concentration_water*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
+  "PESTICIDE_TII_2022" = tapply(intM$mean_tii*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
+  "PESTICIDE_EXPOSURE_2022" = tapply(intM$all_pesticide_exposure*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma
 )
 
 m0 <- match(mailles$cd_sig, out$cd_sig)
@@ -68,20 +75,27 @@ keepC <- names(out)[!names(out) %in% names(mailles)]
 mailles[, keepC] <- out[m0, keepC]
 
 for (i in keepC) {
-  filei <- paste0("PESTICIDE_", toupper(i), "_MAILLE.png")
+  filei <- paste0(toupper(i), "_MAILLE.png")
   png(
     file = file.path(fig_folder, filei),
     width = 1200,
     height = 1000,
     res = 200
   )
-  plot(mailles, y = i, border = NA, main = paste("Pesticide -", i, "- Maille"))
+  plot(
+    mailles,
+    y = i,
+    border = NA,
+    main = paste(i, "- Maille"),
+    breaks = 6,
+    breakby = "cases"
+  )
   dev.off()
 }
 
 write.csv(
   data.frame(mailles),
-  file.path(out_folder, "MAILLE_PESTICIDE.csv"),
+  file.path(out_folder, "MAILLE_PESTICIDE_2022.csv"),
   row.names = FALSE
 )
 
@@ -99,11 +113,11 @@ suma <- tapply(intC$pa, intC$INSEE_COM, sum, na.rm = TRUE)
 #fmt:skip
 out <- data.frame(
   "INSEE_COM" = names(npix),
-  "npix" = as.numeric(npix),
-  "mean_concentration_air" = tapply(intC$mean_concentration*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
-  "mean_concentration_water" = tapply(intC$mean_concentration_water*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
-  "treatment_intensity_index" = tapply(intC$mean_itt*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
-  "pesticide_exposure" = tapply(intC$all_pesticide_exposure*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma
+  "PESTICIDE_NPIXELS_2022" = as.numeric(npix),
+  "PESTICIDE_AIR_ng_per_m3_2022" = tapply(intC$mean_concentration_air*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
+  "PESTICIDE_WATER_ng_per_m3_2022" = tapply(intC$mean_concentration_water*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
+  "PESTICIDE_TII_2022" = tapply(intC$mean_tii*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
+  "PESTICIDE_EXPOSURE_2022" = tapply(intC$all_pesticide_exposure*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma
 )
 
 # match the rows
@@ -114,19 +128,26 @@ keepC <- names(out)[!names(out) %in% names(commune)]
 commune[, keepC] <- out[m0, keepC]
 
 for (i in keepC) {
-  filei <- paste0("PESTICIDE_", toupper(i), "_COMMUNE.png")
+  filei <- paste0(toupper(i), "_COMMUNE.png")
   png(
     file = file.path(fig_folder, filei),
     width = 1200,
     height = 1000,
     res = 200
   )
-  plot(commune, y = i, border = NA, main = paste("Pesticide -", i, "- Commune"))
+  plot(
+    commune,
+    y = i,
+    border = NA,
+    main = paste(i, "- Commune"),
+    breaks = 6,
+    breakby = "cases"
+  )
   dev.off()
 }
 
 write.csv(
   data.frame(commune),
-  file.path(out_folder, "COMMUNE_PESTICIDE.csv"),
+  file.path(out_folder, "COMMUNE_PESTICIDE_2022.csv"),
   row.names = FALSE
 )

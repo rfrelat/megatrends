@@ -4,7 +4,10 @@
 # Telepac 2024 from https://www.telepac.agriculture.gouv.fr/telepac/tbp/accueil/accueil.action
 #   Liste_beneficiaires_PAC_2022_20241218.csv
 # output:
-#   PS_GREEN_SUBS_2022
+#   indicators_csv/MAILLE_GREENSUBS_2022.csv
+#   indicators_csv/COMMUNE_GREENSUBS_2022.csv
+#   figure/GREENSUBS_XX_2022_MAILLE.png
+#   figure/GREENSUBS_XX_2022_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -120,34 +123,38 @@ telepac$INSEE_COM <- m2$ref_id
 
 # number of PAC subsidies per commune
 NB_subs <- tapply(telepac$Montant > 0, telepac$INSEE_COM, sum, na.rm = TRUE)
-TOT_subs <- tapply(telepac$Montant, telepac$INSEE_COM, sum, na.rm = TRUE)
+TOT_subs <- tapply(telepac$Montant, telepac$INSEE_COM, sum, na.rm = TRUE) / 1000
 
 # export --------------------------------------------------
 ## per commune
 m0 <- match(commune$INSEE_COM, names(NB_subs))
 
-commune$NB_GREENSUBS_2022 <- as.numeric(NB_subs)[m0]
-commune$NB_GREENSUBS_2022[is.na(commune$NB_GREENSUBS_2022)] <- 0
+commune$GREENSUBS_N_2022 <- as.numeric(NB_subs)[m0]
+commune$GREENSUBS_N_2022[is.na(commune$GREENSUBS_N_2022)] <- 0
 
-commune$TOT_GREENSUBS_2022 <- as.numeric(TOT_subs)[m0]
-commune$TOT_GREENSUBS_2022[is.na(commune$TOT_GREENSUBS_2022)] <- 0
+commune$GREENSUBS_kEUR_2022 <- as.numeric(TOT_subs)[m0]
+commune$GREENSUBS_kEUR_2022[is.na(commune$GREENSUBS_kEUR_2022)] <- 0
 
-png(
-  file = file.path(fig_folder, "TOT_GREENSUBS_2022_COMMUNE.png"),
-  width = 1200,
-  height = 1000,
-  res = 200
-)
-plot(
-  commune,
-  y = "TOT_GREENSUBS_2022",
-  border = NA,
-  breaks = c(0, 1, 5, 10, 100, 1000, 10000) * 1000,
-  main = "Amount of green subsidies - 2022 - Commune",
-  mar = c(1.1, 2.1, 1.1, 7.1)
-)
-dev.off()
+keepC <- c("GREENSUBS_N_2022", "GREENSUBS_kEUR_2022")
 
+for (i in keepC) {
+  filei <- paste0(toupper(i), "_COMMUNE.png")
+  png(
+    file = file.path(fig_folder, filei),
+    width = 1200,
+    height = 1000,
+    res = 200
+  )
+  plot(
+    commune,
+    y = i,
+    border = NA,
+    main = paste(i, "- Commune"),
+    breaks = 6,
+    breakby = "cases"
+  )
+  dev.off()
+}
 
 write.csv(
   data.frame(commune),
@@ -156,39 +163,38 @@ write.csv(
 )
 
 ## per maille 10km
-# load the data
-# com_csv <- read.csv(file.path(ind_folder, "COMMUNE_NB_HVE_2024.csv"))
-# commune$NB_HVE_2024 <- com_csv$NB_HVE_2024
 # make sure the cross match
 # table(row.names(cross) == mailles$cd_sig, useNA = "ifany")
 # table(colnames(cross) == commune$INSEE_COM, useNA = "ifany")
 
 # weighted average
-cross_nb <- t(cross) * commune$NB_GREENSUBS_2022
+cross_nb <- t(cross) * commune$GREENSUBS_N_2022
 sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-mailles$NB_GREENSUBS_2022 <- sum_nb / mailles$AREA_HA
+mailles$GREENSUBS_N_2022 <- sum_nb / mailles$AREA_HA
 
-cross_tot <- t(cross) * commune$TOT_GREENSUBS_2022
+cross_tot <- t(cross) * commune$GREENSUBS_kEUR_2022
 sum_tot <- apply(cross_tot, 2, sum, na.rm = TRUE)
-mailles$TOT_GREENSUBS_2022 <- sum_tot / mailles$AREA_HA
+mailles$GREENSUBS_kEUR_2022 <- sum_tot / mailles$AREA_HA
 
-# boxplot(mailles$TOT_GREENSUBS_2022)
-
-png(
-  file = file.path(fig_folder, "TOT_GREENSUBS_2022_MAILLE.png"),
-  width = 1200,
-  height = 1000,
-  res = 200
-)
-plot(
-  mailles,
-  y = "TOT_GREENSUBS_2022",
-  border = NA,
-  breaks = c(0, 1, 5, 10, 100, 1000, 10000) * 1000,
-  main = "Amount of green subsidies - 2022 - Maille",
-  mar = c(1.1, 2.1, 1.1, 7.1)
-)
-dev.off()
+# boxplot(mailles$GREENSUBS_kEUR_2022)
+for (i in keepC) {
+  filei <- paste0(toupper(i), "_MAILLE.png")
+  png(
+    file = file.path(fig_folder, filei),
+    width = 1200,
+    height = 1000,
+    res = 200
+  )
+  plot(
+    mailles,
+    y = i,
+    border = NA,
+    main = paste(i, "- Maille"),
+    breaks = 6,
+    breakby = "cases"
+  )
+  dev.off()
+}
 
 write.csv(
   data.frame(mailles),

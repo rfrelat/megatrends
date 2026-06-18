@@ -27,7 +27,7 @@ devtools::load_all()
 
 # 1. Check, complete and verify reference list
 source(here::here("analysis", "01a_conv_ref"))
-# additional scripts
+# # additional scripts
 source(here::here("analysis", "01b_get_synonyms"))
 source(here::here("analysis", "01c_cross_ref"))
 
@@ -50,9 +50,12 @@ source(here::here("analysis", "02f_get_NO3_eaupotable.R"))
 source(here::here("analysis", "02g_get_rpg.R"))
 # Agreste 2020: Recensement agricole
 source(here::here("analysis", "02h_get_agreste.R"))
-
+# Crop rotation
+source(here::here("analysis", "02i_get_croptation.R"))
+#
 # to be completed ...
 
 # 3. Merge everything
-#
+source(here::here("analysis", "03_merge_indicators.R"))
 # to be completed
+# quarto::quarto_render("analysis/03_political_stringency.qmd")

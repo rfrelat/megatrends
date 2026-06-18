@@ -6,8 +6,8 @@
 # output:
 #   indicators_csv/MAILLE_WDPA_2026.csv
 #   indicators_csv/COMMUNE_WDPA_2026.csv
-#   figure/PROT_AREA_2026_MAILLE.png
-#   figure/PROT_AREA_2026_COMMUNE.png
+#   figure/PROT_AREA_PCT_2026_MAILLE.png
+#   figure/PROT_AREA_PCT_2026_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -76,27 +76,27 @@ intM <- intersect(wdpa_simp, mailles)
 # plot(intM)
 # because wdpa was aggregated, there is no duplicated cd_sig
 intM$pa <- expanse(intM) * 0.0001
-mailles$PROT_AREA_HA <- ifelse(
+mailles$PROT_AREA_HA_2026 <- ifelse(
   mailles$cd_sig %in% intM$cd_sig,
   intM$pa[match(mailles$cd_sig, intM$cd_sig)],
   0
 )
 
 #fmt: skip
-mailles$PROT_AREA_PCT <- (mailles$PROT_AREA_HA / mailles$AREA_HA * 100) |> 
+mailles$PROT_AREA_PCT_2026 <- (mailles$PROT_AREA_HA_2026 / mailles$AREA_HA * 100) |> 
   round(2)
 
 png(
-  file = file.path(fig_folder, "PROT_AREA_2026_MAILLE.png"),
+  file = file.path(fig_folder, "PROT_AREA_PCT_2026_MAILLE.png"),
   width = 1200,
   height = 1000,
   res = 200
 )
 plot(
   mailles,
-  y = "PROT_AREA_PCT",
-  # col = map.pal("blues", 100),
+  y = "PROT_AREA_PCT_2026",
   border = NA,
+  breaks = 11,
   main = "Protected area (%) - 2026 - Commune"
 )
 dev.off()
@@ -119,7 +119,7 @@ table(commune$INSEE_COM %in% intC$INSEE_COM)
 dim(intC)
 head(intM$INSEE_COM)
 # add the protected area in the original shapefile
-commune$PROT_AREA_HA <- ifelse(
+commune$PROT_AREA_HA_2026 <- ifelse(
   commune$INSEE_COM %in% intC$INSEE_COM,
   intC$pa[match(commune$INSEE_COM, intC$INSEE_COM)],
   0
@@ -127,20 +127,21 @@ commune$PROT_AREA_HA <- ifelse(
 
 # calculate the percentage of
 # fmt:skip
-commune$PROT_AREA_PCT <- (commune$PROT_AREA_HA / commune$AREA_HA * 100) |> 
+commune$PROT_AREA_PCT_2026 <- (commune$PROT_AREA_HA_2026 / commune$AREA_HA * 100) |> 
   round(2)
 
 png(
-  file = file.path(fig_folder, "PROT_AREA_2026_COMMUNE.png"),
+  file = file.path(fig_folder, "PROT_AREA_PCT_2026_COMMUNE.png"),
   width = 1200,
   height = 1000,
   res = 200
 )
 plot(
   commune,
-  y = "PROT_AREA_PCT",
+  y = "PROT_AREA_PCT_2026",
   # col = map.pal("blues", 100),
   border = NA,
+  breaks = 11,
   main = "Protected area (%) - 2026 - Commune"
 )
 dev.off()

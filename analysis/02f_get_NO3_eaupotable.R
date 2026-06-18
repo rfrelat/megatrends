@@ -87,31 +87,36 @@ nit_prel <- data.frame(
 nprel <- table(nit_prel$insee_com)
 #fmt:skip
 nit_com <- data.frame(
-  "insee_com" = names(nprel),
-  "NO3_N_samples" = as.numeric(nprel),
-  "NO3_mean_mg_per_l" = tapply(nit_prel$mean_no3, nit_prel$insee_com, mean),
-  "NO3_max_mg_per_l" = tapply(nit_prel$mean_no3, nit_prel$insee_com, max)
+  "INSEE_COM" = names(nprel),
+  "NO3_Nsamples_2025" = as.numeric(nprel),
+  "NO3_mg_per_l_2025" = tapply(nit_prel$mean_no3, nit_prel$insee_com, mean)
 )
-
 
 # 3. export --------------------------------------------------
 ## 3A. per commune
-m0 <- match(commune$INSEE_COM, nit_com$insee_com)
+m0 <- match(commune$INSEE_COM, nit_com$INSEE_COM)
 
-commune$NO3_2025_N_samples <- nit_com$NO3_N_samples[m0]
-commune$NO3_2025_mean_mg_per_l <- nit_com$NO3_mean_mg_per_l[m0]
-commune$NO3_2025_max_mg_per_l <- nit_com$NO3_max_mg_per_l[m0]
+keepC <- names(nit_com)[!names(nit_com) %in% names(commune)]
+# plot(intM)
 
-for (i in names(commune)[-(1:9)]) {
-  li <- gsub("^NO3_", "", i)
-  filei <- paste0("NITRATE_", toupper(li), "_COMMUNE.png")
+commune[, keepC] <- nit_com[m0, keepC]
+
+for (i in keepC) {
+  filei <- paste0(toupper(i), "_COMMUNE.png")
   png(
     file = file.path(fig_folder, filei),
     width = 1200,
     height = 1000,
     res = 200
   )
-  plot(commune, y = i, border = NA, main = paste("Nitrate -", li, "- Commune"))
+  plot(
+    commune,
+    y = i,
+    border = NA,
+    main = paste(i, "- Commune"),
+    breaks = 6,
+    breakby = "cases"
+  )
   dev.off()
 }
 
@@ -125,33 +130,33 @@ write.csv(
 ## 3B. per maille 10km
 
 # weighted average
-cross_nb <- t(cross) * commune$NO3_2025_N_samples
+cross_nb <- t(cross) * commune$NO3_Nsamples_2025
 sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-mailles$NO3_2025_N_samples <- sum_nb / mailles$AREA_HA
+mailles$NO3_Nsamples_2025 <- sum_nb / mailles$AREA_HA
 # table(mailles$NO3_N_samples_2025 == 0) # 132
 
-cross_mean <- t(cross) * commune$NO3_2025_mean_mg_per_l
+cross_mean <- t(cross) * commune$NO3_mg_per_l_2025
 sum_mean <- apply(cross_mean, 2, sum, na.rm = TRUE)
-mailles$NO3_2025_mean_mg_per_l <- sum_mean / mailles$AREA_HA
-mailles$NO3_2025_mean_mg_per_l[mailles$NO3_2025_N_samples == 0] <- NA
+mailles$NO3_mg_per_l_2025 <- sum_mean / mailles$AREA_HA
+mailles$NO3_mg_per_l_2025[mailles$NO3_Nsamples_2025 == 0] <- NA
 # table(mailles$NO3_mean_mg_per_l_2025 == 0, useNA = "ifany") # 206
 
-cross_max <- t(!is.na(cross)) * commune$NO3_2025_max_mg_per_l
-mailles$NO3_2025_max_mg_per_l <- apply(cross_max, 2, max, na.rm = TRUE)
-mailles$NO3_2025_max_mg_per_l[mailles$NO3_2025_N_samples == 0] <- NA
-# table(mailles$NO3_2025_max_mg_per_l == 0, useNA = "ifany")
-
-# boxplot(mailles$TOT_GREENSUBS_2022)
-for (i in names(mailles)[-(1:3)]) {
-  li <- gsub("^NO3_", "", i)
-  filei <- paste0("NITRATE_", toupper(li), "_MAILLE.png")
+for (i in keepC) {
+  filei <- paste0(toupper(i), "_MAILLE.png")
   png(
     file = file.path(fig_folder, filei),
     width = 1200,
     height = 1000,
     res = 200
   )
-  plot(mailles, y = i, border = NA, main = paste("Nitrate -", li, "- Maille"))
+  plot(
+    mailles,
+    y = i,
+    border = NA,
+    main = paste(i, "- Maille"),
+    breaks = 6,
+    breakby = "cases"
+  )
   dev.off()
 }
 

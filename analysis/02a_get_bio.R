@@ -6,10 +6,10 @@
 #   https://www.data.gouv.fr/datasets/parcelles-en-agriculture-biologique-ab-declarees-a-la-pac
 #
 # output:
-#   indicators_csv/MAILLE_Bio_2024.csv
-#   indicators_csv/COMMUNE_Bio_2024.csv
-#   figure/BIO_AREA_2024_MAILLE.png
-#   figure/BIO_AREA_2024_COMMUNE.png
+#   indicators_csv/MAILLE_BIO_2024.csv
+#   indicators_csv/COMMUNE_BIO_2024.csv
+#   figure/BIO_XX_2024_MAILLE.png
+#   figure/BIO_XX_2024_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -67,44 +67,49 @@ intM <- intersect(bio_valid, mailles)
 intM$calc_area <- expanse(intM) * 0.0001
 sum_areaM <- tapply(intM$calc_area, intM$cd_sig, sum, na.rm = TRUE)
 
-mailles$BIO_AREA_HA <- ifelse(
+mailles$BIO_AREA_HA_2024 <- ifelse(
   mailles$cd_sig %in% names(sum_areaM),
   sum_areaM[match(mailles$cd_sig, names(sum_areaM))],
   0
 )
 
 # check if errors (overlapping areas?)
-# table(mailles$BIO_AREA_HA > mailles$AREA_HA)
+# table(mailles$BIO_AREA_HA_2024 > mailles$AREA_HA)
 # looks good :)
 
-#fmt: skip
-mailles$BIO_AREA_PCT <- (mailles$BIO_AREA_HA / mailles$AREA_HA * 100) |> 
-  round(2)
+# no need to calculate percentages here: calculation in 03_merge_indicators.R
+# mailles$BIO_AREA_PCT <- (mailles$BIO_AREA_HA_2024 / mailles$AREA_HA * 100) |> round(2)
 
 # calculate the number of fields
 n_areaM <- tapply(intM$calc_area > 0, intM$cd_sig, sum, na.rm = TRUE)
-mailles$BIO_FIELDS_N <- ifelse(
+mailles$BIO_FIELDS_N_2024 <- ifelse(
   mailles$cd_sig %in% names(n_areaM),
   n_areaM[match(mailles$cd_sig, names(n_areaM))],
   0
 )
-# barplot(table(mailles$BIO_FIELDS_N))
+# barplot(table(mailles$BIO_FIELDS_N_2024))
 
-png(
-  file = file.path(fig_folder, "BIO_AREA_2024_MAILLE.png"),
-  width = 1200,
-  height = 1000,
-  res = 200
-)
-plot(
-  mailles,
-  y = "BIO_AREA_PCT",
-  # col = map.pal("blues", 100),
-  border = NA,
-  main = "Organic fields (%) - 2024 - Commune"
-)
-dev.off()
+keepC <- c("BIO_AREA_HA_2024", "BIO_FIELDS_N_2024")
+# plot(intM)
 
+for (i in keepC) {
+  filei <- paste0(toupper(i), "_MAILLE.png")
+  png(
+    file = file.path(fig_folder, filei),
+    width = 1200,
+    height = 1000,
+    res = 200
+  )
+  plot(
+    mailles,
+    y = i,
+    border = NA,
+    main = paste(i, "- Maille"),
+    breaks = 6,
+    breakby = "cases"
+  )
+  dev.off()
+}
 
 write.csv(
   data.frame(mailles),
@@ -122,45 +127,46 @@ intC$calc_area <- expanse(intC) * 0.0001
 sum_areaC <- tapply(intC$calc_area, intC$INSEE_COM, sum, na.rm = TRUE)
 
 # add the organic cultivated area in the original shapefile
-commune$BIO_AREA_HA <- ifelse(
+commune$BIO_AREA_HA_2024 <- ifelse(
   commune$INSEE_COM %in% names(sum_areaC),
   sum_areaC[match(commune$INSEE_COM, names(sum_areaC))],
   0
 )
 
 # check if errors (overlapping areas?)
-table(commune$BIO_AREA_HA > commune$AREA_HA)
+# table(commune$BIO_AREA_HA_2024 > commune$AREA_HA)
 # looks good :)
 
-# calculate the percentage of
-# fmt:skip
-commune$BIO_AREA_PCT <- (commune$BIO_AREA_HA / commune$AREA_HA * 100) |> 
-  round(2)
-
+# no need to calculate percentages here: calculation in 03_merge_indicators.R
+# commune$BIO_AREA_PCT <- (commune$BIO_AREA_HA_2024 / commune$AREA_HA * 100) |> round(2)
 
 # calculate the number of fields
 n_areaC <- tapply(intC$calc_area > 0, intC$INSEE_COM, sum, na.rm = TRUE)
-commune$BIO_FIELDS_N <- ifelse(
+commune$BIO_FIELDS_N_2024 <- ifelse(
   commune$INSEE_COM %in% names(n_areaC),
   n_areaC[match(commune$INSEE_COM, names(n_areaC))],
   0
 )
-# barplot(table(commune$BIO_FIELDS_N))
+# barplot(table(commune$BIO_FIELDS_N_2024))
 
-png(
-  file = file.path(fig_folder, "BIO_AREA_2024_COMMUNE.png"),
-  width = 1200,
-  height = 1000,
-  res = 200
-)
-plot(
-  commune,
-  y = "BIO_AREA_PCT",
-  # col = map.pal("blues", 100),
-  border = NA,
-  main = "Organic fields (%) - 2024 - Commune"
-)
-dev.off()
+for (i in keepC) {
+  filei <- paste0(toupper(i), "_COMMUNE.png")
+  png(
+    file = file.path(fig_folder, filei),
+    width = 1200,
+    height = 1000,
+    res = 200
+  )
+  plot(
+    commune,
+    y = i,
+    border = NA,
+    main = paste(i, "- Commune"),
+    breaks = 6,
+    breakby = "cases"
+  )
+  dev.off()
+}
 
 write.csv(
   data.frame(commune),
