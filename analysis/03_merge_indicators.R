@@ -11,9 +11,14 @@ devtools::load_all()
 
 ref_folder <- here::here("data", "derived-data", "ref")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
+out_app <- here::here("app", "data")
 
-commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
-mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+commune <- terra::vect(file.path(ref_folder, "commune_simple0005_4326.gpkg"))
+mailles <- terra::vect(file.path(ref_folder, "mailles_10km_4326.gpkg"))
+
+meta <- readxl::read_xlsx(
+  here::here("data", "derived-data", "megatrends_metadata.xlsx")
+)
 
 srch <- "^XX_.*csv$"
 # Same process for commune and maille
@@ -54,11 +59,22 @@ for (i in c("commune", "maille")) {
     NA
   )
 
+  #re-order indicators
+  ind <- ind[, unique(c(names(shp), meta$Name))]
+
+  # export as csv file
   outi <- paste0("Dataset_", i, ".csv")
-  # percentage of organic over the total cultivated area (in RPG?)
   write.csv(
     ind,
     file.path(ind_folder, outi),
     row.names = FALSE
+  )
+
+  # export as geopackage for shinyapp
+  shp <- cbind(shp, ind[, !names(ind) %in% names(shp)])
+  terra::writeVector(
+    shp,
+    file.path(out_app, paste0(i, ".gpkg")),
+    overwrite = TRUE
   )
 }

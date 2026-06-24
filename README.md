@@ -32,3 +32,9 @@ source("make.R")
 ```
 
 The file `make.R` can be run to recompute all indicators. As the analysis is carried out at the scale of France, it takes some hours to run.
+
+<!-- 
+```r
+shiny::runApp("/home/rfrelat/Documents/megatrends/app")
+``` 
+-->

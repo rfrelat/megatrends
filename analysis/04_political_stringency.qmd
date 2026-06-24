@@ -15,7 +15,6 @@ execute:
 
 The objective of this document is to explore the current state of indicators on political stringency in France.  
 
-One of the issue is to remove the *size effect*: large agricultural commune will tend to have higher indicators.
 
 ### Calculated indicators 
 
@@ -26,6 +25,32 @@ devtools::load_all()
 ref_folder <- here::here("data", "derived-data", "ref")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
 
+# load shapefile
+commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
+# load merged indicators
+outC <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
+
+# load shapefile
+mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+
+# load merged indicators
+outM <- read.csv(file.path(ind_folder, "Dataset_maille.csv"))
+
+# add Paul data
+# paul_db <- read.csv(
+#   here::here("data", "derived-data", "paul", "commune_metrics_2023.csv")
+# )
+# m0 <- match(outC$INSEE_COM, paul_db$INSEE_COM)
+# # table(is.na(m0)) # there are 3135 commune missing
+# # select the interesting column
+# keep <- 12:ncol(paul_db)
+# # add them to outC
+# outC[names(paul_db)[keep]] <- paul_db[m0, keep]
+```
+
+
+```{r}
+#| label: metadata
 meta <- readxl::read_xlsx(
   here::here("data", "derived-data", "megatrends_metadata.xlsx")
 )
@@ -43,37 +68,6 @@ knitr::kable(ps)
 ```
 
 Full indicator tables is stored in [Github](https://github.com/rfrelat/megatrends/blob/main/progress/megatrends_RF.xlsx)
-
-```{r}
-#| label: merge-commune
-# load shapefile
-commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
-# load merged indicators
-outC <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
-```
-
-
-```{r}
-# add Paul data
-paul_db <- read.csv(
-  here::here("data", "derived-data", "paul", "commune_metrics_2023.csv")
-)
-m0 <- match(outC$INSEE_COM, paul_db$INSEE_COM)
-# table(is.na(m0)) # there are 3135 commune missing
-# select the interesting column
-keep <- 12:ncol(paul_db)
-# add them to outC
-outC[names(paul_db)[keep]] <- paul_db[m0, keep]
-```
-
-```{r}
-#| label: merge-mailles
-# load shapefile
-mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
-
-# load merged indicators
-outM <- read.csv(file.path(ind_folder, "Dataset_maille.csv"))
-```
 
 
 ## Overall correlation
@@ -107,3 +101,27 @@ pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
 ```
 
 ::: 
+
+
+## Missing data
+
+
+```{r}
+#| label: tbl-numberba
+#| tbl-cap: "Number of NAs per variable and per spatial resolution"
+naC <- apply(is.na(outC[, ps$Name]), 2, sum)
+naM <- apply(is.na(outM[, ps$Name]), 2, sum)
+
+nna <- data.frame(
+  "NAs_Commune" = naC,
+  "NA_perc_Commune" = round(naC / nrow(outC) * 100, 1),
+  "NAs_Maille" = naM,
+  "NA_perc_Maille" = round(naM / nrow(outM) * 100, 1)
+)
+knitr::kable(nna)
+```
+
+
+## Maps
+
+*Not available yet*

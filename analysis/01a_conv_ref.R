@@ -49,7 +49,7 @@ keepC <- c(
   "superficie_cadastrale" = "AREA_CADASTRE"
 )
 commune <- commune[, names(keepC)]
-names(commune) = keepC
+names(commune) <- keepC
 commune$AREA_HA <- expanse(commune) * 0.0001
 
 # export as gpkg file
@@ -77,3 +77,20 @@ writeVector(maille_fr, file.path(out_folder, "mailles_10km_4326.gpkg"))
 
 maille_2154 <- project(maille_fr, "EPSG:2154")
 writeVector(maille_2154, file.path(out_folder, "mailles_10km_2154.gpkg"))
+
+
+# 4. Simplify commune --------------------------------------------
+commune <- vect(file.path(out_folder, "commune_4326.gpkg"))
+
+# scom <- simplifyGeom(commune, tolerance = 0.001)
+# writeVector(scom, file.path(out_folder, "commune_simple0001_4326.gpkg"))
+
+# seems to be the best compromise size vs geometry
+scom <- simplifyGeom(commune, tolerance = 0.005)
+writeVector(scom, file.path(out_folder, "commune_simple0005_4326.gpkg"))
+
+# scom <- simplifyGeom(commune, tolerance = 0.01)
+# writeVector(scom, file.path(out_folder, "commune_simple001_4326.gpkg"))
+
+# plot(scom, col = "blue", border = NA)
+# mapview::mapview(scom)
