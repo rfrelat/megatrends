@@ -20,7 +20,8 @@ ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 commune <- vect(file.path(ref_folder, "commune_4326.gpkg"))
-mailles <- vect(file.path(ref_folder, "mailles_10km_4326.gpkg"))
+scales <- c(10, 5, 1) # in km, resolution of the mailles
+# mailles <- vect(file.path(ref_folder, "mailles_10km_4326.gpkg"))
 
 # 2. Load and clean WDPA data ------------------------------------
 if (!file.exists(file.path(out_folder, "WDPA_2026_simp.gpkg"))) {
@@ -71,41 +72,49 @@ if (!file.exists(file.path(out_folder, "WDPA_2026_simp.gpkg"))) {
 # 3. Overlay and calculate statistics -----------------------------
 # the intersect() step takes a very long time to compute at the French scale
 
-## 3a. for mailles 10km
-intM <- intersect(wdpa_simp, mailles)
-# plot(intM)
-# because wdpa was aggregated, there is no duplicated cd_sig
-intM$pa <- expanse(intM) * 0.0001
-mailles$PROT_AREA_HA_2026 <- ifelse(
-  mailles$cd_sig %in% intM$cd_sig,
-  intM$pa[match(mailles$cd_sig, intM$cd_sig)],
-  0
-)
+## 3a. for mailles
+for (i in scales) {
+  mailles <- terra::vect(
+    file.path(ref_folder, paste0("mailles_", i, "km_4326.gpkg"))
+  )
+  intM <- intersect(wdpa_simp, mailles)
+  # plot(intM)
+  # because wdpa was aggregated, there is no duplicated cd_sig
+  intM$pa <- expanse(intM) * 0.0001
+  mailles$PROT_AREA_HA_2026 <- ifelse(
+    mailles$cd_sig %in% intM$cd_sig,
+    intM$pa[match(mailles$cd_sig, intM$cd_sig)],
+    0
+  )
 
-#fmt: skip
-mailles$PROT_AREA_PCT_2026 <- (mailles$PROT_AREA_HA_2026 / mailles$AREA_HA * 100) |> 
+  #fmt: skip
+  mailles$PROT_AREA_PCT_2026 <- (mailles$PROT_AREA_HA_2026 / mailles$AREA_HA * 100) |> 
   round(2)
 
-png(
-  file = file.path(fig_folder, "PROT_AREA_PCT_2026_MAILLE.png"),
-  width = 1200,
-  height = 1000,
-  res = 200
-)
-plot(
-  mailles,
-  y = "PROT_AREA_PCT_2026",
-  border = NA,
-  breaks = 11,
-  main = "Protected area (%) - 2026 - Commune"
-)
-dev.off()
+  png(
+    file = file.path(
+      fig_folder,
+      paste0("PROT_AREA_PCT_2026_MAILLE", i, "km.png")
+    ),
+    width = 1200,
+    height = 1000,
+    res = 200
+  )
+  plot(
+    mailles,
+    y = "PROT_AREA_PCT_2026",
+    border = NA,
+    breaks = 11,
+    main = "Protected area (%) - 2026 - Commune"
+  )
+  dev.off()
 
-write.csv(
-  data.frame(mailles),
-  file.path(ind_folder, "MAILLE_WDPA_2026.csv"),
-  row.names = FALSE
-)
+  write.csv(
+    data.frame(mailles),
+    file.path(ind_folder, paste0("MAILLE", i, "km_WDPA_2026.csv")),
+    row.names = FALSE
+  )
+}
 
 ## 3b. for communes
 # calculate the intersections
@@ -115,9 +124,6 @@ intC <- intersect(wdpa_simp, commune)
 # calculate the area in ha
 intC$pa <- expanse(intC) * 0.0001
 
-table(commune$INSEE_COM %in% intC$INSEE_COM)
-dim(intC)
-head(intM$INSEE_COM)
 # add the protected area in the original shapefile
 commune$PROT_AREA_HA_2026 <- ifelse(
   commune$INSEE_COM %in% intC$INSEE_COM,
@@ -125,7 +131,7 @@ commune$PROT_AREA_HA_2026 <- ifelse(
   0
 )
 
-# calculate the percentage of
+# calculate the percentage of protected area
 # fmt:skip
 commune$PROT_AREA_PCT_2026 <- (commune$PROT_AREA_HA_2026 / commune$AREA_HA * 100) |> 
   round(2)

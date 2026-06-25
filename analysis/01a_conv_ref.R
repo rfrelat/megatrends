@@ -5,14 +5,14 @@
 #   COMMUNE.shp
 #     from "LIMITES_ADMINISTRATIVES_EXPRESS.LATEST:commune"
 #     https://www.data.gouv.fr/datasets/code-officiel-geographique-cog
-#   mailles_10km.shp
+#   mailles_Xkm.shp
 #     from https://www.patrinat.fr/fr/page-temporaire-de-telechargement-des-referentiels-de-donnees-lies-linpn-7353
 # output: (derived-data/ref/)
 #   commune_2154.gpkg
 #   commune_4326.gpkg
 #   france_4326.gpkg
-#   mailles_10km_4326.gpkg
-#   mailles_10km_2154.gpkg
+#   mailles_Xkm_4326.gpkg
+#   mailles_Xkm_2154.gpkg
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -59,38 +59,45 @@ writeVector(commune, file.path(out_folder, "commune_4326.gpkg"))
 com2154 <- project(commune, "EPSG:2154")
 writeVector(com2154, file.path(out_folder, "commune_2154.gpkg"))
 
-
 france <- aggregate(commune) |> simplifyGeom(tolerance = 0.001)
 writeVector(france, file.path(out_folder, "france_4326.gpkg"))
 
-
 # 3. Load, crop and project mailles_10km ------------------------
-# france <- vect(file.path(ref_folder, "france_4326.gpkg"))
-maille <- vect(file.path(ref_folder, "mailles_10km.shp"))
-maille_fr <- maille[maille$territoire == "METROP", ]
+# france <- vect(file.path(out_folder, "france_4326.gpkg"))
+for (i in c(10, 5, 1)) {
+  maille <- vect(file.path(ref_folder, paste0("mailles_", i, "km.shp")))
+  maille_fr <- maille[maille$territoire == "METROP", ]
 
-# much faster with simplified polygons of france
-maille_fr <- crop(maille_fr, france)
-maille_fr$AREA_HA <- expanse(maille_fr) * 0.0001
+  # much faster with simplified polygons of france
+  maille_fr <- crop(maille_fr, france)
+  maille_fr$AREA_HA <- expanse(maille_fr) * 0.0001
 
-writeVector(maille_fr, file.path(out_folder, "mailles_10km_4326.gpkg"))
+  writeVector(
+    maille_fr,
+    file.path(out_folder, paste0("mailles_", i, "km_4326.gpkg")),
+    overwrite = TRUE
+  )
 
-maille_2154 <- project(maille_fr, "EPSG:2154")
-writeVector(maille_2154, file.path(out_folder, "mailles_10km_2154.gpkg"))
-
+  maille_2154 <- project(maille_fr, "EPSG:2154")
+  writeVector(
+    maille_2154,
+    file.path(out_folder, paste0("mailles_", i, "km_2154.gpkg")),
+    overwrite = TRUE
+  )
+}
 
 # 4. Simplify commune --------------------------------------------
-commune <- vect(file.path(out_folder, "commune_4326.gpkg"))
+# commune <- vect(file.path(out_folder, "commune_4326.gpkg"))
 
-# scom <- simplifyGeom(commune, tolerance = 0.001)
-# writeVector(scom, file.path(out_folder, "commune_simple0001_4326.gpkg"))
+scom <- simplifyGeom(commune, tolerance = 0.001)
+writeVector(scom, file.path(out_folder, "commune_simple0001_4326.gpkg"))
 
-# seems to be the best compromise size vs geometry
+# 0.005 seems to be the best compromise size vs geometry
 scom <- simplifyGeom(commune, tolerance = 0.005)
 writeVector(scom, file.path(out_folder, "commune_simple0005_4326.gpkg"))
 
-# scom <- simplifyGeom(commune, tolerance = 0.01)
-# writeVector(scom, file.path(out_folder, "commune_simple001_4326.gpkg"))
+scom <- simplifyGeom(commune, tolerance = 0.01)
+writeVector(scom, file.path(out_folder, "commune_simple001_4326.gpkg"))
 
 # plot(scom, col = "blue", border = NA)
 # mapview::mapview(scom)
