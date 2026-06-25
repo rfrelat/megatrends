@@ -23,13 +23,15 @@ devtools::load_all()
 
 ## Run Project --------------------------------------------
 
-# 2 steps:
+# 4 steps:
 
 # 1. Check, complete and verify reference list
-source(here::here("analysis", "01a_conv_ref"))
-# # additional scripts
-source(here::here("analysis", "01b_get_synonyms"))
-source(here::here("analysis", "01c_cross_ref"))
+source(here::here("analysis", "01a_conv_ref.R"))
+# additional scripts
+# to get synonyms for commune
+source(here::here("analysis", "01b_get_synonyms.R"))
+# to intersect commune and mailles
+source(here::here("analysis", "01c_cross_ref.R"))
 
 # 2. Get megatrends per data sources
 # CARTOBIO: percentage of organic fields
@@ -57,7 +59,20 @@ source(here::here("analysis", "02i_get_croptation.R"))
 
 # 3. Merge everything
 source(here::here("analysis", "03_merge_indicators.R"))
-# to be completed
 
-# 4. Overview
+# 4. Create overview
 quarto::quarto_render("analysis/04_political_stringency.qmd")
+
+# 5. Run the shiny app
+app_path <- here::here("app")
+shiny::runApp(app_path, display.mode = "normal")
+
+file_app <- rsconnect::listDeploymentFiles(app_path)
+file_app <- file_app[!file_app %in% "miniapp.R"]
+rsconnect::deployApp(
+  appDir = app_path,
+  appFiles = file_app,
+  appName = "Motiver_megatrends",
+  appTitle = "Motiver Megatrends"
+)
+# 15Mb

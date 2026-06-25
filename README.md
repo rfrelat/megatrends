@@ -1,6 +1,6 @@
 # Megatrends : Research compendium for extracting megatrends maps in France 
 
-Code and data used to extracting megatrends maps in France 
+Code and data used to extract megatrends maps in France 
 
 
 ## General
@@ -31,7 +31,14 @@ These two steps will be run automatically when run this command in R/RStudio:
 source("make.R")
 ```
 
-The file `make.R` can be run to recompute all indicators. As the analysis is carried out at the scale of France, it takes some hours to run.
+The file `make.R` can be run to recompute all indicators. As the analysis is carried out at the scale of France, it takes multiple hours to run.
+
+## Overview
+
+You can have an overview of the calculated indicators:  
+
+- through a Shiny App<https://rfrelat-cesab.shinyapps.io/Motiver_megatrends/>  
+- with a focus on political stringency indicators: <https://rfrelat.github.io/megatrends/>
 
 <!-- 
 ```r
