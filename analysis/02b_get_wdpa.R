@@ -3,10 +3,11 @@
 # input:
 #   WDPA_Apr2026_Public_shp-polygons.shp
 #     from https://www.protectedplanet.net
+#
 # output:
-#   indicators_csv/MAILLE_WDPA_2026.csv
+#   indicators_csv/MAILLEXkm_WDPA_2026.csv
 #   indicators_csv/COMMUNE_WDPA_2026.csv
-#   figure/PROT_AREA_PCT_2026_MAILLE.png
+#   figure/PROT_AREA_PCT_2026_MAILLEXkm.png
 #   figure/PROT_AREA_PCT_2026_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
@@ -74,6 +75,7 @@ if (!file.exists(file.path(out_folder, "WDPA_2026_simp.gpkg"))) {
 
 ## 3a. for mailles
 for (i in scales) {
+  cat(paste("Maille", i, "km \n"))
   mailles <- terra::vect(
     file.path(ref_folder, paste0("mailles_", i, "km_4326.gpkg"))
   )
@@ -105,7 +107,7 @@ for (i in scales) {
     y = "PROT_AREA_PCT_2026",
     border = NA,
     breaks = 11,
-    main = "Protected area (%) - 2026 - Commune"
+    main = paste("Protected area (%) - 2026 - MAILLE", i, "km")
   )
   dev.off()
 
@@ -117,6 +119,7 @@ for (i in scales) {
 }
 
 ## 3b. for communes
+cat(paste("Commune \n"))
 # calculate the intersections
 intC <- intersect(wdpa_simp, commune)
 # because wdpa was aggregated, there is no duplicated cd_sig
@@ -145,7 +148,6 @@ png(
 plot(
   commune,
   y = "PROT_AREA_PCT_2026",
-  # col = map.pal("blues", 100),
   border = NA,
   breaks = 11,
   main = "Protected area (%) - 2026 - Commune"

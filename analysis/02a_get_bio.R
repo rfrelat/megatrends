@@ -6,9 +6,9 @@
 #   https://www.data.gouv.fr/datasets/parcelles-en-agriculture-biologique-ab-declarees-a-la-pac
 #
 # output:
-#   indicators_csv/MAILLE_BIO_2024.csv
+#   indicators_csv/MAILLEXkm_BIO_2024.csv
 #   indicators_csv/COMMUNE_BIO_2024.csv
-#   figure/BIO_XX_2024_MAILLE.png
+#   figure/BIO_XX_2024_MAILLEXkm.png
 #   figure/BIO_XX_2024_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
@@ -22,7 +22,8 @@ ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 commune <- vect(file.path(ref_folder, "commune_2154.gpkg"))
-mailles <- vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+scales <- c(10, 5, 1) # in km, resolution of the mailles
+# mailles <- vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
 
 # 2. Load and clean WDPA data ------------------------------------
 if (!file.exists(file.path(out_folder, "Cartobio_2024_valid.gpkg"))) {
@@ -61,63 +62,69 @@ if (!file.exists(file.path(out_folder, "Cartobio_2024_valid.gpkg"))) {
 # 3. Overlay and calculate statistics -----------------------------
 # the intersect() step takes a very long time to compute at the French scale
 
-## 3a. for mailles 10km
-intM <- intersect(bio_valid, mailles)
-# is there overlapping polygons? should we do union first?
-intM$calc_area <- expanse(intM) * 0.0001
-sum_areaM <- tapply(intM$calc_area, intM$cd_sig, sum, na.rm = TRUE)
-
-mailles$BIO_AREA_HA_2024 <- ifelse(
-  mailles$cd_sig %in% names(sum_areaM),
-  sum_areaM[match(mailles$cd_sig, names(sum_areaM))],
-  0
-)
-
-# check if errors (overlapping areas?)
-# table(mailles$BIO_AREA_HA_2024 > mailles$AREA_HA)
-# looks good :)
-
-# no need to calculate percentages here: calculation in 03_merge_indicators.R
-# mailles$BIO_AREA_PCT <- (mailles$BIO_AREA_HA_2024 / mailles$AREA_HA * 100) |> round(2)
-
-# calculate the number of fields
-n_areaM <- tapply(intM$calc_area > 0, intM$cd_sig, sum, na.rm = TRUE)
-mailles$BIO_FIELDS_N_2024 <- ifelse(
-  mailles$cd_sig %in% names(n_areaM),
-  n_areaM[match(mailles$cd_sig, names(n_areaM))],
-  0
-)
-# barplot(table(mailles$BIO_FIELDS_N_2024))
-
-keepC <- c("BIO_AREA_HA_2024", "BIO_FIELDS_N_2024")
-# plot(intM)
-
-for (i in keepC) {
-  filei <- paste0(toupper(i), "_MAILLE.png")
-  png(
-    file = file.path(fig_folder, filei),
-    width = 1200,
-    height = 1000,
-    res = 200
+## 3a. for mailles
+for (i in scales) {
+  cat(paste("Maille", i, "km \n"))
+  mailles <- terra::vect(
+    file.path(ref_folder, paste0("mailles_", i, "km_2154.gpkg"))
   )
-  plot(
-    mailles,
-    y = i,
-    border = NA,
-    main = paste(i, "- Maille"),
-    breaks = 6,
-    breakby = "cases"
+  intM <- intersect(bio_valid, mailles)
+
+  # is there overlapping polygons? should we do union first?
+  intM$calc_area <- expanse(intM) * 0.0001
+  sum_areaM <- tapply(intM$calc_area, intM$cd_sig, sum, na.rm = TRUE)
+
+  mailles$BIO_AREA_HA_2024 <- ifelse(
+    mailles$cd_sig %in% names(sum_areaM),
+    sum_areaM[match(mailles$cd_sig, names(sum_areaM))],
+    0
   )
-  dev.off()
+
+  # check if errors (overlapping areas?)
+  # table(mailles$BIO_AREA_HA_2024 > mailles$AREA_HA)
+  # looks good :)
+
+  # calculate the number of fields
+  n_areaM <- tapply(intM$calc_area > 0, intM$cd_sig, sum, na.rm = TRUE)
+  mailles$BIO_FIELDS_N_2024 <- ifelse(
+    mailles$cd_sig %in% names(n_areaM),
+    n_areaM[match(mailles$cd_sig, names(n_areaM))],
+    0
+  )
+  # barplot(table(mailles$BIO_FIELDS_N_2024))
+
+  keepC <- c("BIO_AREA_HA_2024", "BIO_FIELDS_N_2024")
+  # plot(intM)
+
+  for (j in keepC) {
+    filej <- paste0(toupper(j), "_MAILLE", i, "km.png")
+    png(
+      file = file.path(fig_folder, filej),
+      width = 1200,
+      height = 1000,
+      res = 200
+    )
+    plot(
+      mailles,
+      y = j,
+      border = NA,
+      main = paste(j, "- Maille", i, "km"),
+      breaks = 6,
+      breakby = "cases"
+    )
+    dev.off()
+  }
+
+  write.csv(
+    data.frame(mailles),
+    file.path(ind_folder, paste0("MAILLE", i, "km_BIO_2024.csv")),
+    row.names = FALSE
+  )
 }
 
-write.csv(
-  data.frame(mailles),
-  file.path(ind_folder, "MAILLE_BIO_2024.csv"),
-  row.names = FALSE
-)
 
 ## 3b. for communes
+cat(paste("Commune \n"))
 # calculate the intersections
 intC <- intersect(bio_valid, commune)
 
