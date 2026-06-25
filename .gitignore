@@ -13,3 +13,6 @@ analysis/.vdoc*
 **/*.quarto_ipynb
 
 _freeze/
+
+app/data/
+app/rsconnect/

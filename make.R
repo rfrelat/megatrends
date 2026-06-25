@@ -67,12 +67,13 @@ quarto::quarto_render("analysis/04_political_stringency.qmd")
 app_path <- here::here("app")
 shiny::runApp(app_path, display.mode = "normal")
 
-file_app <- rsconnect::listDeploymentFiles(app_path)
-file_app <- file_app[!file_app %in% "miniapp.R"]
-rsconnect::deployApp(
-  appDir = app_path,
-  appFiles = file_app,
-  appName = "Motiver_megatrends",
-  appTitle = "Motiver Megatrends"
-)
-# 15Mb
+# and deploy it (if needed)
+# file_app <- rsconnect::listDeploymentFiles(app_path)
+# file_app <- file_app[!file_app %in% "miniapp.R"]
+# rsconnect::deployApp(
+#   appDir = app_path,
+#   appFiles = file_app,
+#   appName = "Motiver_megatrends",
+#   appTitle = "Motiver Megatrends"
+# )
+# # 15Mb
