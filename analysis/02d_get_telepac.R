@@ -4,9 +4,9 @@
 # Telepac 2024 from https://www.telepac.agriculture.gouv.fr/telepac/tbp/accueil/accueil.action
 #   Liste_beneficiaires_PAC_2022_20241218.csv
 # output:
-#   indicators_csv/MAILLE_GREENSUBS_2022.csv
+#   indicators_csv/MAILLEXkm_GREENSUBS_2022.csv
 #   indicators_csv/COMMUNE_GREENSUBS_2022.csv
-#   figure/GREENSUBS_XX_2022_MAILLE.png
+#   figure/GREENSUBS_XX_2022_MAILLEXkm.png
 #   figure/GREENSUBS_XX_2022_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
@@ -22,9 +22,10 @@ ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
-mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
-# to simplify and fasten the mapping
-cross <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
+scales <- c(10, 5, 1) # in km, resolution of the mailles
+# mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+# cross <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
+
 # add known commune synonyms to improve the number of matches
 synonyms <- read.csv(file.path(ref_folder, "commune_synonyms.csv"))
 
@@ -163,41 +164,57 @@ write.csv(
 )
 
 ## per maille 10km
-# make sure the cross match
-# table(row.names(cross) == mailles$cd_sig, useNA = "ifany")
-# table(colnames(cross) == commune$INSEE_COM, useNA = "ifany")
-
-# weighted average
-cross_nb <- t(cross) * commune$GREENSUBS_N_2022
-sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-mailles$GREENSUBS_N_2022 <- sum_nb / mailles$AREA_HA
-
-cross_tot <- t(cross) * commune$GREENSUBS_kEUR_2022
-sum_tot <- apply(cross_tot, 2, sum, na.rm = TRUE)
-mailles$GREENSUBS_kEUR_2022 <- sum_tot / mailles$AREA_HA
-
-# boxplot(mailles$GREENSUBS_kEUR_2022)
-for (i in keepC) {
-  filei <- paste0(toupper(i), "_MAILLE.png")
-  png(
-    file = file.path(fig_folder, filei),
-    width = 1200,
-    height = 1000,
-    res = 200
+for (i in scales) {
+  cat(paste("Maille", i, "km \n"))
+  # load the data
+  mailles <- terra::vect(
+    file.path(ref_folder, paste0("mailles_", i, "km_4326.gpkg"))
   )
-  plot(
-    mailles,
-    y = i,
-    border = NA,
-    main = paste(i, "- Maille"),
-    breaks = 6,
-    breakby = "cases"
+  cross <- readRDS(
+    file.path(ref_folder, paste0("cross_mailles", i, "km_commune.rds"))
   )
-  dev.off()
+
+  m0 <- match(cross$INSEE_COM, commune$INSEE_COM)
+  cross$n <- commune$GREENSUBS_N_2022[m0]
+  cross$tot <- commune$GREENSUBS_kEUR_2022[m0]
+
+  # weighted average
+  sumN <- tapply(cross$n * cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+  sumT <- tapply(cross$tot * cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+  area <- tapply(cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+
+  m1 <- match(mailles$cd_sig, names(area))
+  # cross_nb <- t(cross) * commune$GREENSUBS_N_2022
+  # sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
+  mailles$GREENSUBS_N_2022 <- (sumN / area)[m1]
+
+  # cross_tot <- t(cross) * commune$GREENSUBS_kEUR_2022
+  # sum_tot <- apply(cross_tot, 2, sum, na.rm = TRUE)
+  mailles$GREENSUBS_kEUR_2022 <- (sumT / area)[m1]
+
+  # boxplot(mailles$GREENSUBS_kEUR_2022)
+  for (x in keepC) {
+    filei <- paste0(toupper(x), "_MAILLE", i, "km.png")
+    png(
+      file = file.path(fig_folder, filei),
+      width = 1200,
+      height = 1000,
+      res = 200
+    )
+    plot(
+      mailles,
+      y = x,
+      border = NA,
+      main = paste(x, "- Maille", i, "km"),
+      breaks = 6,
+      breakby = "cases"
+    )
+    dev.off()
+  }
+
+  write.csv(
+    data.frame(mailles),
+    file.path(ind_folder, paste0("MAILLE", i, "km_GREENSUBS_2022.csv")),
+    row.names = FALSE
+  )
 }
-
-write.csv(
-  data.frame(mailles),
-  file.path(ind_folder, "MAILLE_GREENSUBS_2022.csv"),
-  row.names = FALSE
-)

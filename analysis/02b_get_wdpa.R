@@ -9,7 +9,9 @@
 #   indicators_csv/COMMUNE_WDPA_2026.csv
 #   figure/PROT_AREA_PCT_2026_MAILLEXkm.png
 #   figure/PROT_AREA_PCT_2026_COMMUNE.png
-
+#
+# WARNING: super long to compute statistics for 1km maille
+#
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
 library(terra) #for fast processing of large files

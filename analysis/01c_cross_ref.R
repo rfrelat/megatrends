@@ -4,7 +4,7 @@
 #   commune_4326.gpkg
 #   mailles_Xkm_4326.gpkg
 # output:
-#   cross_maillesXkm_commune.rds
+#   cross_maillesXkm_commune.rds (1Mb to 10Mb)
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()

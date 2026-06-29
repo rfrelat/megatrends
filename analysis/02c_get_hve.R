@@ -4,9 +4,9 @@
 # HVE 2025 from https://www.data.gouv.fr/datasets/annuaire-des-exploitations-certifiees-haute-valeur-environnementale
 #   Annuaire des exploitations HVE_Juillet 2024.xlsx
 # output:
-#   indicators_csv/MAILLE_HVE_N_2024.csv
+#   indicators_csv/MAILLEXkm_HVE_N_2024.csv
 #   indicators_csv/COMMUNE_HVE_N_2024.csv
-#   figure/HVE_N_2024_MAILLE.png
+#   figure/HVE_N_2024_MAILLEXkm.png
 #   figure/HVE_N_2024_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
@@ -22,8 +22,9 @@ ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
-mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
-cross <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
+scales <- c(10, 5, 1) # in km, resolution of the mailles
+# mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+# cross <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
 
 synonyms <- read.csv(file.path(ref_folder, "commune_synonyms.csv"))
 
@@ -125,39 +126,46 @@ write.csv(
   row.names = FALSE
 )
 
-## per maille 10km
-# load the data
-# com_csv <- read.csv(file.path(ind_folder, "COMMUNE_HVE_N_2024.csv"))
-# commune$HVE_N_2024 <- com_csv$HVE_N_2024
-# make sure the cross match
-table(row.names(cross) == mailles$cd_sig, useNA = "ifany")
-table(colnames(cross) == commune$INSEE_COM, useNA = "ifany")
+## per maille
+for (i in scales) {
+  cat(paste("Maille", i, "km \n"))
+  # load the data
+  mailles <- terra::vect(
+    file.path(ref_folder, paste0("mailles_", i, "km_4326.gpkg"))
+  )
+  cross <- readRDS(
+    file.path(ref_folder, paste0("cross_mailles", i, "km_commune.rds"))
+  )
 
-# weighted average
-cross_nb <- t(cross) * commune$HVE_N_2024
-sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-mailles$HVE_N_2024 <- sum_nb / mailles$AREA_HA
+  m0 <- match(cross$INSEE_COM, commune$INSEE_COM)
+  cross$HVE <- commune$HVE_N_2024[m0]
 
-# boxplot(mailles$HVE_N_2024)
+  wsum <- tapply(cross$HVE * cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+  area <- tapply(cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
 
-png(
-  file = file.path(fig_folder, "HVE_N_2024_MAILLE.png"),
-  width = 1200,
-  height = 1000,
-  res = 200
-)
-plot(
-  mailles,
-  y = "HVE_N_2024",
-  border = NA,
-  breaks = 6,
-  breakby = "cases",
-  main = "Number of HVE - 2024 - Maille"
-)
-dev.off()
+  m1 <- match(mailles$cd_sig, names(wsum))
+  # plot(area[m1], mailles$AREA_HA)
+  mailles$HVE_N_2024 <- (wsum / area)[m1]
 
-write.csv(
-  data.frame(mailles),
-  file.path(ind_folder, "MAILLE_HVE_N_2024.csv"),
-  row.names = FALSE
-)
+  png(
+    file = file.path(fig_folder, paste0("HVE_N_2024_MAILLE", i, "km.png")),
+    width = 1200,
+    height = 1000,
+    res = 200
+  )
+  plot(
+    mailles,
+    y = "HVE_N_2024",
+    border = NA,
+    breaks = 6,
+    breakby = "cases",
+    main = paste("Number of HVE - 2024 - Maille", i, "km")
+  )
+  dev.off()
+
+  write.csv(
+    data.frame(mailles),
+    file.path(ind_folder, paste0("MAILLE", i, "km_HVE_N_2024.csv")),
+    row.names = FALSE
+  )
+}
