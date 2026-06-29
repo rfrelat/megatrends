@@ -26,27 +26,37 @@ for (i in scales) {
 
   int$NEW_AREA <- terra::expanse(int) * 0.0001
 
-  int_ha <- tapply(
-    int$NEW_AREA,
-    list(int$cd_sig, int$INSEE_COM),
-    sum,
-    na.rm = TRUE
-  )
-
-  dim(int_ha) # 5877 mailles, 34746 communes
-  # or 22809 celles, 34746 communes
-
-  # int_ha <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
-  # int_ha[int_ha == 0] <- NA
-
+  # need to avoid the wide format: too many zero for 1km maille
+  # int_ha <- tapply(
+  #   int$NEW_AREA,
+  #   list(int$cd_sig, int$INSEE_COM),
+  #   sum,
+  #   na.rm = TRUE
+  # )
+  # 5877 cells, 34746 communes
+  # or 22809 cells, 34746 communes
+  # or 554193 cellsx 34746 communes= 19255989978 => CRASH
   # make sure the intersection match the row data
   # not the case for communes in column
-  int_ha <- int_ha[match(mailles$cd_sig, row.names(int_ha)), ]
+  # int_ha <- int_ha[match(mailles$cd_sig, row.names(int_ha)), ]
   # table(row.names(int_ha) == mailles$cd_sig, useNA = "ifany")
-  int_ha <- int_ha[, match(commune$INSEE_COM, colnames(int_ha))]
+  # int_ha <- int_ha[, match(commune$INSEE_COM, colnames(int_ha))]
   # table(colnames(int_ha) == commune$INSEE_COM, useNA = "ifany")
 
-  mailles$NB_COMMUNES <- apply(!is.na(int_ha), 1, sum, na.rm = TRUE)
+  # keep long format instead
+  long_df <- data.frame(
+    "cd_sig" = int$cd_sig,
+    "INSEE_COM" = int$INSEE_COM,
+    "AREA_HA" = int$NEW_AREA
+  )
+  # table(duplicated(long_df[, c("cd_sig", "INSEE_COM")]))
+  # sum(long_df$AREA_HA) # 54905036
+  # table(long_df$AREA_HA > 0)
+
+  npix <- table(long_df$cd_sig)
+
+  mailles$NB_COMMUNES <- npix[match(mailles$cd_sig, names(npix))]
+  # apply(!is.na(int_ha), 1, sum, na.rm = TRUE)
   # boxplot(mailles$NB_COMMUNES)
 
   png(
@@ -63,7 +73,10 @@ for (i in scales) {
   )
   dev.off()
 
-  commune$NB_CELLS <- apply(!is.na(int_ha), 2, sum, na.rm = TRUE)
+  ncom <- table(long_df$INSEE_COM)
+
+  commune$NB_CELLS <- ncom[match(commune$INSEE_COM, names(ncom))]
+  # commune$NB_CELLS <- apply(!is.na(int_ha), 2, sum, na.rm = TRUE)
   # boxplot(commune$NB_CELLS)
   png(
     file = file.path(fig_folder, paste0("NB_CELLS", i, "km_COMMUNE.png")),
@@ -80,7 +93,7 @@ for (i in scales) {
   dev.off()
 
   saveRDS(
-    int_ha,
+    long_df,
     file = file.path(ref_folder, paste0("cross_mailles", i, "km_commune.rds"))
   )
 }
