@@ -4,9 +4,9 @@
 #   data_Agreste_Commune.csv from https://stats.agriculture.gouv.fr/cartostat/
 # output:
 #   indicators_csv/COMMUNE_AGRESTE_2020.csv
-#   indicators_csv/MAILLE_AGRESTE_2020.csv
+#   indicators_csv/MAILLEXkm_AGRESTE_2020.csv
 #   figure/AGRESTE_XX_COMMUNE.png
-#   figure/AGRESTE_XX_MAILLE.png
+#   figure/AGRESTE_XX_MAILLEXkm.png
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -18,18 +18,18 @@ ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
-mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
-# to simplify and fasten the mapping
-cross <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
+scales <- c(10, 5, 1) # in km, resolution of the mailles
+# mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+# cross <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
 # add known commune synonyms to improve the number of matches
-synonyms <- read.csv(file.path(ref_folder, "commune_synonyms.csv"))
+# synonyms <- read.csv(file.path(ref_folder, "commune_synonyms.csv"))
 
 #format the list of reference
-ref <- data.frame(
-  "name" = clean_city_names(commune$NOM_M),
-  "code" = check_postalcode(commune$INSEE_COM),
-  "id" = commune$INSEE_COM
-)
+# ref <- data.frame(
+#   "name" = clean_city_names(commune$NOM_M),
+#   "code" = check_postalcode(commune$INSEE_COM),
+#   "id" = commune$INSEE_COM
+# )
 
 # data from https://agreste.agriculture.gouv.fr/agreste-web/disaron/RA2020_2006/detail/
 #   are not spatially informed so unusable
@@ -118,44 +118,52 @@ write.csv(
   row.names = FALSE
 )
 
-## per maille 10km
-# load the data
-# com_csv <- read.csv(file.path(ind_folder, "COMMUNE_NB_HVE_2024.csv"))
-# commune$NB_HVE_2024 <- com_csv$NB_HVE_2024
-# make sure the cross match
-# table(row.names(cross) == mailles$cd_sig, useNA = "ifany")
-# table(colnames(cross) == commune$INSEE_COM, useNA = "ifany")
-
-# weighted average
-for (i in var) {
-  cross_nb <- t(cross) * data.frame(commune)[, i]
-  sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-  nb <- apply(!is.na(cross_nb), 2, sum, na.rm = TRUE)
-  mailles[, i] <- ifelse(nb == 0, NA, sum_nb / mailles$AREA_HA)
-}
-
-for (i in var) {
-  filei <- paste0(toupper(i), "_MAILLE.png")
-  png(
-    file = file.path(fig_folder, filei),
-    width = 1200,
-    height = 1000,
-    res = 200
+## per maille
+for (i in scales) {
+  cat(paste("Maille", i, "km \n"))
+  # load the data
+  mailles <- terra::vect(
+    file.path(ref_folder, paste0("mailles_", i, "km_2154.gpkg"))
   )
-  plot(
-    mailles,
-    y = i,
-    border = NA,
-    main = paste(i, "- Maille"),
-    breaks = 6,
-    breakby = "cases"
+  cross <- readRDS(
+    file.path(ref_folder, paste0("cross_mailles", i, "km_commune.rds"))
   )
-  dev.off()
+
+  m0 <- match(cross$INSEE_COM, commune$INSEE_COM)
+  area <- tapply(cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+  m1 <- match(mailles$cd_sig, names(area))
+  cross <- as.data.frame(cross)
+  # weighted average
+  for (j in var) {
+    cross[, j] <- data.frame(commune)[m0, j]
+
+    sumJ <- tapply(cross[, j] * cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+    numJ <- tapply(!is.na(cross[, j]), cross$cd_sig, sum, na.rm = TRUE)
+
+    indj <- ifelse(numJ > 0, sumJ / area, NA)
+    mailles[, j] <- indj[m1]
+
+    filej <- paste0(toupper(j), "_MAILLE", i, "km.png")
+    png(
+      file = file.path(fig_folder, filej),
+      width = 1200,
+      height = 1000,
+      res = 200
+    )
+    plot(
+      mailles,
+      y = j,
+      border = NA,
+      main = paste(j, "- Maille", i, "km"),
+      breaks = 6,
+      breakby = "cases"
+    )
+    dev.off()
+  }
+
+  write.csv(
+    data.frame(mailles),
+    file.path(ind_folder, paste0("MAILLE", i, "km_AGRESTE_2020.csv")),
+    row.names = FALSE
+  )
 }
-
-
-write.csv(
-  data.frame(mailles),
-  file.path(ind_folder, "MAILLE_AGRESTE_2020.csv"),
-  row.names = FALSE
-)

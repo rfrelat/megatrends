@@ -19,10 +19,8 @@ ref_folder <- here::here("data", "derived-data", "ref")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
-commune <- vect(file.path(ref_folder, "commune_2154.gpkg"))
-commune$id <- commune$INSEE_COM
-mailles <- vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
-mailles$id <- mailles$cd_sig
+scales <- c("commune", "mailles_10km", "mailles_5km", "mailles_1km")
+
 
 # RPG categories
 fallow <- c("J5M", "J6P", "J6S", "JAC", "JNO")
@@ -40,18 +38,21 @@ crops <- rpg[!rpg$CODE_CULTU %in% noag]
 # select only fallow
 jachere <- rpg[rpg$CODE_CULTU %in% fallow]
 
-
 # 3. Overlay and calculate statistics -----------------------------
 # the intersect() step takes a very long time to compute at the French scale
 
 # Same process for commune and maille
-for (i in c("Commune", "Maille")) {
-  # print(i)
-  if (i == "Commune") {
-    shp <- commune
+for (i in scales) {
+  print(i)
+  if (i == "commune") {
+    shp <- vect(file.path(ref_folder, "commune_2154.gpkg"))
+    shp$id <- shp$INSEE_COM
   } else {
-    shp <- mailles
+    shp <- vect(file.path(ref_folder, paste0(i, "_2154.gpkg")))
+    shp$id <- shp$cd_sig
   }
+
+  labi <- gsub("KM$", "km", toupper(gsub("_", "", i)))
 
   # fallow area
   intF <- intersect(jachere, shp)
@@ -67,7 +68,7 @@ for (i in c("Commune", "Maille")) {
   shp$FALLOW_AREA_PCT_2023 <- (shp$FALLOW_AREA_HA_2023 / shp$AREA_HA * 100) |>
     round(2)
 
-  fi <- paste0("RPG_FALLOW_AREA_2023_", toupper(i), ".png")
+  fi <- paste0("RPG_FALLOW_AREA_2023_", labi, ".png")
   png(
     file = file.path(fig_folder, fi),
     width = 1200,
@@ -103,7 +104,7 @@ for (i in c("Commune", "Maille")) {
   # fmt: skip
   shp$CULTIVATED_AREA_PCT_2023 <- round(shp$CULTIVATED_AREA_HA_2023 / shp$AREA_HA * 100, 2)
 
-  fi <- paste0("RPG_CULTIVATED_AREA_2023_", toupper(i), ".png")
+  fi <- paste0("RPG_CULTIVATED_AREA_2023_", labi, ".png")
   png(
     file = file.path(fig_folder, fi),
     width = 1200,
@@ -137,7 +138,7 @@ for (i in c("Commune", "Maille")) {
     NA
   )
 
-  fi <- paste0("RPG_DOMINANT_CROP_2023_", toupper(i), ".png")
+  fi <- paste0("RPG_DOMINANT_CROP_2023_", labi, ".png")
   png(
     file = file.path(fig_folder, fi),
     width = 1200,
@@ -163,7 +164,7 @@ for (i in c("Commune", "Maille")) {
     NA
   )
 
-  fi <- paste0("RPG_CROPDIV_SHANNON_2023_", toupper(i), ".png")
+  fi <- paste0("RPG_CROPDIV_SHANNON_2023_", labi, ".png")
   png(
     file = file.path(fig_folder, fi),
     width = 1200,
@@ -200,7 +201,7 @@ for (i in c("Commune", "Maille")) {
   shp$FIELD_SIZE_MEDIAN_HA_2023[shp$CULTIVATED_AREA_HA_2023 == 0] <- NA
   shp$FIELD_SIZE_MEAN_HA_2023[shp$CULTIVATED_AREA_HA_2023 == 0] <- NA
 
-  fi <- paste0("RPG_FIELDSIZE_MEDIAN_2023_", toupper(i), ".png")
+  fi <- paste0("RPG_FIELDSIZE_MEDIAN_2023_", labi, ".png")
   png(
     file = file.path(fig_folder, fi),
     width = 1200,
@@ -218,7 +219,7 @@ for (i in c("Commune", "Maille")) {
   dev.off()
 
   # export
-  out_fi <- paste0(toupper(i), "_RPG_2023.csv")
+  out_fi <- paste0(gsub("S", "", labi), "_RPG_2023.csv")
 
   write.csv(
     data.frame(shp)[, names(shp) != "id"],

@@ -193,19 +193,19 @@ for (i in scales) {
   mailles$GREENSUBS_kEUR_2022 <- (sumT / area)[m1]
 
   # boxplot(mailles$GREENSUBS_kEUR_2022)
-  for (x in keepC) {
-    filei <- paste0(toupper(x), "_MAILLE", i, "km.png")
+  for (j in keepC) {
+    filej <- paste0(toupper(j), "_MAILLE", i, "km.png")
     png(
-      file = file.path(fig_folder, filei),
+      file = file.path(fig_folder, filej),
       width = 1200,
       height = 1000,
       res = 200
     )
     plot(
       mailles,
-      y = x,
+      y = j,
       border = NA,
-      main = paste(x, "- Maille", i, "km"),
+      main = paste(j, "- Maille", i, "km"),
       breaks = 6,
       breakby = "cases"
     )

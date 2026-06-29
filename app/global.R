@@ -33,11 +33,12 @@ meta <- read.csv(
 # commune <- st_read(file.path(folder, "commune.gpkg"))
 # commune_poly <- sf::st_cast(commune, "POLYGON", warn = FALSE)
 # sf::st_write(commune_poly, file.path(folder, "commune_poly.gpkg"))
-commune <- st_read(file.path(folder, "commune_poly.gpkg"), quiet = TRUE)
+commune <- sf::st_read(file.path(folder, "commune.gpkg"), quiet = TRUE)
 
 # maille <- st_read(file.path(folder, "maille.gpkg"))
 # maille_poly <- sf::st_cast(maille, "POLYGON", warn = FALSE)
 # sf::st_write(maille_poly, file.path(folder, "maille_poly.gpkg"))
-maille <- st_read(file.path(folder, "maille_poly.gpkg"), quiet = TRUE)
+maille <- sf::st_read(file.path(folder, "mailles_10km.gpkg"), quiet = TRUE)
 
 var_choices <- names(maille)[names(maille) %in% meta$Name]
+var_choices <- var_choices[var_choices != "CROP_DOMINANT_2023"]

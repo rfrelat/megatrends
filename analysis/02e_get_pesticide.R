@@ -9,9 +9,9 @@
 #     all_pesticide_exposure: Combined exposure in toxic, carcinogenic, mutagenic, reprotoxic active substances from the scaled concentrations in air and water and treatment intensity index, designed to vary between 0 and 3 (historical data between 0 and 1.5)
 #
 # output:
-#   indicators_csv/MAILLE_PESTICIDE.csv
+#   indicators_csv/MAILLEXkm_PESTICIDE.csv
 #   indicators_csv/COMMUNE_PESTICIDE.csv
-#   figure/PESTICIDE_XX_MAILLE.png
+#   figure/PESTICIDE_XX_MAILLEXkm.png
 #   figure/PESTICIDE_XX_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
@@ -23,12 +23,9 @@ data_folder <- here::here("data", "raw-data", "pesticide")
 out_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
-commune <- vect(file.path(ref_folder, "commune_4326.gpkg"))
-mailles <- vect(file.path(ref_folder, "mailles_10km_4326.gpkg"))
-
-# project to RGF93 v1 / Lambert-93 (EPSG:2154)
-commune <- project(commune, "EPSG:2154")
-mailles <- project(mailles, "EPSG:2154")
+commune <- vect(file.path(ref_folder, "commune_2154.gpkg"))
+scales <- c(10, 5, 1) # in km, resolution of the mailles
+# mailles <- vect(file.path(ref_folder, "mailles_10km_4326.gpkg"))
 
 # 2. Load pesticide data ------------------------------------
 # combined 2013 - 2022 data
@@ -43,23 +40,28 @@ exp <- vect(file.path(
   "Yearly_exposure_to_active_substance_in_use_air_and_water.gpkg"
 ))
 exp <- exp[exp$year == 2022, ]
-plot(exp, y = "mean_tii", border = NA)
+# plot(exp, y = "mean_tii", border = NA)
 
 # 3. Overlay and calculate statistics -----------------------------
 # the intersect() step takes a very long time to compute at the French scale
 
 ## 3a. for mailles 10km
-intM <- intersect(exp, mailles)
+for (i in scales) {
+  cat(paste("Maille", i, "km \n"))
+  mailles <- terra::vect(
+    file.path(ref_folder, paste0("mailles_", i, "km_2154.gpkg"))
+  )
+  intM <- intersect(exp, mailles)
 
-# calculate intersecting area
-intM$pa <- expanse(intM) * 0.0001
+  # calculate intersecting area
+  intM$pa <- expanse(intM) * 0.0001
 
-npix <- table(intM$cd_sig)
-suma <- tapply(intM$pa, intM$cd_sig, sum, na.rm = TRUE)
-# table(names(suma) == names(npix))
+  npix <- table(intM$cd_sig)
+  suma <- tapply(intM$pa, intM$cd_sig, sum, na.rm = TRUE)
+  # table(names(suma) == names(npix))
 
-#fmt:skip
-out <- data.frame(
+  #fmt:skip
+  out <- data.frame(
   "cd_sig" = names(npix),
   "PESTICIDE_NPIXELS_2022" = as.numeric(npix),
   "PESTICIDE_AIR_ng_per_m3_2022" = tapply(intM$mean_concentration_air*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
@@ -68,38 +70,39 @@ out <- data.frame(
   "PESTICIDE_EXPOSURE_2022" = tapply(intM$all_pesticide_exposure*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma
 )
 
-m0 <- match(mailles$cd_sig, out$cd_sig)
-keepC <- names(out)[!names(out) %in% names(mailles)]
-# plot(intM)
+  m0 <- match(mailles$cd_sig, out$cd_sig)
+  keepC <- names(out)[!names(out) %in% names(mailles)]
+  # plot(intM)
+  mailles[, keepC] <- out[m0, keepC]
 
-mailles[, keepC] <- out[m0, keepC]
+  for (j in keepC) {
+    filej <- paste0(toupper(j), "_MAILLE", i, "km.png")
+    png(
+      file = file.path(fig_folder, filej),
+      width = 1200,
+      height = 1000,
+      res = 200
+    )
+    plot(
+      mailles,
+      y = j,
+      border = NA,
+      main = paste(j, "- Maille", i, "km"),
+      breaks = 6,
+      breakby = "cases"
+    )
+    dev.off()
+  }
 
-for (i in keepC) {
-  filei <- paste0(toupper(i), "_MAILLE.png")
-  png(
-    file = file.path(fig_folder, filei),
-    width = 1200,
-    height = 1000,
-    res = 200
+  write.csv(
+    data.frame(mailles),
+    file.path(out_folder, paste0("MAILLE", i, "km_PESTICIDE_2022.csv")),
+    row.names = FALSE
   )
-  plot(
-    mailles,
-    y = i,
-    border = NA,
-    main = paste(i, "- Maille"),
-    breaks = 6,
-    breakby = "cases"
-  )
-  dev.off()
 }
 
-write.csv(
-  data.frame(mailles),
-  file.path(out_folder, "MAILLE_PESTICIDE_2022.csv"),
-  row.names = FALSE
-)
-
 ## 3b. for communes
+cat(paste("Commune \n"))
 # calculate the intersections
 intC <- intersect(exp, commune)
 # because wdpa was aggregated, there is no duplicated cd_sig

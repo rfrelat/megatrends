@@ -9,7 +9,10 @@ function(input, output, session) {
   # Table --------------------------
   output$tableMeta <- DT::renderDT({
     DT::datatable(
-      meta[!names(meta) %in% c("Script", "Megatrend", "Manifestation")],
+      meta[
+        meta$Name %in% var_choices,
+        !names(meta) %in% c("Script", "Megatrend", "Manifestation")
+      ],
       rownames = FALSE
     )
   })

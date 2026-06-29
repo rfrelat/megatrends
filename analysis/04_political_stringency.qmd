@@ -22,20 +22,21 @@ The objective of this document is to explore the current state of indicators on 
 #| label: setup
 devtools::load_all()
 
-ref_folder <- here::here("data", "derived-data", "ref")
+# ref_folder <- here::here("data", "derived-data", "ref")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
 
 # load shapefile
-commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
+# commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
 # load merged indicators
 outC <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
 
 # load shapefile
-mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+# mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
 
 # load merged indicators
-outM <- read.csv(file.path(ind_folder, "Dataset_maille.csv"))
-
+outM10 <- read.csv(file.path(ind_folder, "Dataset_mailles_10km.csv"))
+outM5 <- read.csv(file.path(ind_folder, "Dataset_mailles_5km.csv"))
+outM1 <- read.csv(file.path(ind_folder, "Dataset_mailles_1km.csv"))
 # add Paul data
 # paul_db <- read.csv(
 #   here::here("data", "derived-data", "paul", "commune_metrics_2023.csv")
@@ -87,12 +88,38 @@ names(indC) <- sapply(strsplit(names(indC), "_"), function(x) {
 pairs(indC, lower.panel = panel.smooth, upper.panel = panel.cor)
 ```
 
-## maille
+## maille10km
 
 ```{r}
-#| label: fig-corr-maille
-#| fig-cap: "Correlation among megatrends per maille"
-indM <- outM[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
+#| label: fig-corr-maille10
+#| fig-cap: "Correlation among megatrends per maille of 10km"
+indM <- outM10[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
+
+names(indM) <- sapply(strsplit(names(indM), "_"), function(x) {
+  paste(x[1], x[2], sep = "\n")
+})
+pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
+```
+
+## maille5km
+
+```{r}
+#| label: fig-corr-maille5
+#| fig-cap: "Correlation among megatrends per maille of 5km"
+indM <- outM5[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
+
+names(indM) <- sapply(strsplit(names(indM), "_"), function(x) {
+  paste(x[1], x[2], sep = "\n")
+})
+pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
+```
+
+## maille1km
+
+```{r}
+#| label: fig-corr-maille1
+#| fig-cap: "Correlation among megatrends per maille of 1km"
+indM <- outM1[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
 
 names(indM) <- sapply(strsplit(names(indM), "_"), function(x) {
   paste(x[1], x[2], sep = "\n")
@@ -110,13 +137,19 @@ pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
 #| label: tbl-numberba
 #| tbl-cap: "Number of NAs per variable and per spatial resolution"
 naC <- apply(is.na(outC[, ps$Name]), 2, sum)
-naM <- apply(is.na(outM[, ps$Name]), 2, sum)
+naM10 <- apply(is.na(outM10[, ps$Name]), 2, sum)
+naM5 <- apply(is.na(outM5[, ps$Name]), 2, sum)
+naM1 <- apply(is.na(outM1[, ps$Name]), 2, sum)
 
 nna <- data.frame(
   "NAs_Commune" = naC,
   "NA_perc_Commune" = round(naC / nrow(outC) * 100, 1),
-  "NAs_Maille" = naM,
-  "NA_perc_Maille" = round(naM / nrow(outM) * 100, 1)
+  "NAs_Maille_10km" = naM10,
+  "NA_perc_Maille_10km" = round(naM10 / nrow(outM10) * 100, 1),
+  "NAs_Maille_5km" = naM5,
+  "NA_perc_Maille_5km" = round(naM5 / nrow(outM5) * 100, 1),
+  "NAs_Maille_1km" = naM1,
+  "NA_perc_Maille_1km" = round(naM1 / nrow(outM1) * 100, 1)
 )
 knitr::kable(nna)
 ```
@@ -124,4 +157,4 @@ knitr::kable(nna)
 
 ## Maps
 
-*Not available yet*
+Visit <https://rfrelat-cesab.shinyapps.io/Motiver_megatrends/> to see the spatial distribution of the indicators.

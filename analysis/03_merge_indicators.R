@@ -1,9 +1,9 @@
 # Script to merge all indicators together
 # input:
-#   indicators_csv/MAILLE_XXX.csv
+#   indicators_csv/MAILLEXkm_XXX.csv
 #   indicators_csv/COMMUNE_XXX.csv
 # output:
-#   indicators_csv/Dataset_maille.csv
+#   indicators_csv/Dataset_maille_Xkm.csv
 #   indicators_csv/Dataset_commune.csv
 
 # Load home made functions
@@ -13,8 +13,10 @@ ref_folder <- here::here("data", "derived-data", "ref")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
 out_app <- here::here("app", "data")
 
-commune <- terra::vect(file.path(ref_folder, "commune_simple0005_4326.gpkg"))
-mailles <- terra::vect(file.path(ref_folder, "mailles_10km_4326.gpkg"))
+scales <- c("commune", "mailles_10km", "mailles_5km", "mailles_1km")
+
+# commune <- terra::vect(file.path(ref_folder, "commune_simple0005_4326.gpkg"))
+# mailles <- terra::vect(file.path(ref_folder, "mailles_10km_4326.gpkg"))
 
 meta <- readxl::read_xlsx(
   here::here("data", "derived-data", "megatrends_metadata.xlsx")
@@ -22,16 +24,20 @@ meta <- readxl::read_xlsx(
 
 srch <- "^XX_.*csv$"
 # Same process for commune and maille
-for (i in c("commune", "maille")) {
+for (i in scales) {
   if (i == "commune") {
-    shp <- commune
+    shp <- terra::vect(file.path(ref_folder, "commune_simple0005_4326.gpkg"))
   } else {
-    shp <- mailles
+    shp <- terra::vect(file.path(ref_folder, paste0(i, "_4326.gpkg")))
   }
-  srchi <- gsub("XX", toupper(i), srch)
+
+  labi <- gsub("KM$", "km", toupper(gsub("_", "", i)))
+  srchi <- gsub("XX", gsub("S", "", labi), srch)
+
   ifiles <- list.files(ind_folder, srchi, full.names = TRUE)
   # remove EauFrance indicators
   ifiles <- ifiles[!grepl("EauFrance", ifiles)]
+
   # load all csv
   ind <- lapply(ifiles, read.csv)
   ind <- lapply(ind, rm_col, col = names(shp))
@@ -72,9 +78,16 @@ for (i in c("commune", "maille")) {
 
   # export as geopackage for shinyapp
   shp <- cbind(shp, ind[, !names(ind) %in% names(shp)])
-  terra::writeVector(
-    shp,
+  # terra::writeVector(
+  #   shp,
+  #   file.path(out_app, paste0(i, ".gpkg")),
+  #   overwrite = TRUE
+  # )
+  # need to be casted as POLYGON
+  shp_poly <- sf::st_cast(sf::st_as_sf(shp), "POLYGON", warn = FALSE)
+  sf::st_write(
+    shp_poly,
     file.path(out_app, paste0(i, ".gpkg")),
-    overwrite = TRUE
+    append = FALSE
   )
 }

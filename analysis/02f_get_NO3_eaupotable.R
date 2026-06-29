@@ -1,13 +1,13 @@
-# Script to get bitrate levels from EauPotable database
+# Script to get nitrate levels from EauPotable database
 
 # input:
 #   eaupotable/dis-2025 from
 #     https://www.data.gouv.fr/datasets/resultats-du-controle-sanitaire-de-leau-distribuee-commune-par-commune
 # output:
 #   indicators_csv/COMMUNE_NITRATE_2025.csv
-#   indicators_csv/MAILLE_NITRATE_2025.csv
+#   indicators_csv/MAILLEXkm_NITRATE_2025.csv
 #   figure/NITRATE_2025_XX_COMMUNE.png
-#   figure/NITRATE_2025_XX_MAILLE.png
+#   figure/NITRATE_2025_XX_MAILLEXkm.png
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -19,11 +19,12 @@ ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 commune <- terra::vect(file.path(ref_folder, "commune_2154.gpkg"))
-mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
-# to simplify and fasten the mapping
-cross <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
+scales <- c(10, 5, 1) # in km, resolution of the mailles
+# mailles <- terra::vect(file.path(ref_folder, "mailles_10km_2154.gpkg"))
+# cross <- readRDS(file.path(ref_folder, "cross_mailles_commune.rds"))
+
 # add known commune synonyms to improve the number of matches
-synonyms <- read.csv(file.path(ref_folder, "commune_synonyms.csv"))
+# synonyms <- read.csv(file.path(ref_folder, "commune_synonyms.csv"))
 
 # 2. Load and clean HVE data ------------------------------------
 
@@ -127,45 +128,69 @@ write.csv(
 )
 
 
-## 3B. per maille 10km
+## 3B. per maille
 
-# weighted average
-cross_nb <- t(cross) * commune$NO3_Nsamples_2025
-sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-mailles$NO3_Nsamples_2025 <- sum_nb / mailles$AREA_HA
-# table(mailles$NO3_N_samples_2025 == 0) # 132
-
-cross_mean <- t(cross) * commune$NO3_mg_per_l_2025
-sum_mean <- apply(cross_mean, 2, sum, na.rm = TRUE)
-mailles$NO3_mg_per_l_2025 <- sum_mean / mailles$AREA_HA
-mailles$NO3_mg_per_l_2025[mailles$NO3_Nsamples_2025 == 0] <- NA
-# table(mailles$NO3_mean_mg_per_l_2025 == 0, useNA = "ifany") # 206
-
-for (i in keepC) {
-  filei <- paste0(toupper(i), "_MAILLE.png")
-  png(
-    file = file.path(fig_folder, filei),
-    width = 1200,
-    height = 1000,
-    res = 200
+## per maille 10km
+for (i in scales) {
+  cat(paste("Maille", i, "km \n"))
+  # load the data
+  mailles <- terra::vect(
+    file.path(ref_folder, paste0("mailles_", i, "km_2154.gpkg"))
   )
-  plot(
-    mailles,
-    y = i,
-    border = NA,
-    main = paste(i, "- Maille"),
-    breaks = 6,
-    breakby = "cases"
+  cross <- readRDS(
+    file.path(ref_folder, paste0("cross_mailles", i, "km_commune.rds"))
   )
-  dev.off()
+
+  m0 <- match(cross$INSEE_COM, commune$INSEE_COM)
+  cross$n <- commune$NO3_Nsamples_2025[m0]
+  cross$mg <- commune$NO3_mg_per_l_2025[m0]
+
+  # weighted average
+  sumN <- tapply(cross$n * cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+  sumMG <- tapply(cross$mg * cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+  area <- tapply(cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
+
+  m1 <- match(mailles$cd_sig, names(area))
+
+  mailles$NO3_Nsamples_2025 <- (sumN / area)[m1]
+  mailles$NO3_mg_per_l_2025 <- (sumMG / area)[m1]
+  mailles$NO3_mg_per_l_2025[mailles$NO3_Nsamples_2025 == 0] <- NA
+
+  # weighted average
+  # cross_nb <- t(cross) * commune$NO3_Nsamples_2025
+  # sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
+  # mailles$NO3_Nsamples_2025 <- sum_nb / mailles$AREA_HA
+  # # table(mailles$NO3_N_samples_2025 == 0) # 132
+
+  # cross_mean <- t(cross) * commune$NO3_mg_per_l_2025
+  # sum_mean <- apply(cross_mean, 2, sum, na.rm = TRUE)
+  # mailles$NO3_mg_per_l_2025 <- sum_mean / mailles$AREA_HA
+
+  for (j in keepC) {
+    filej <- paste0(toupper(j), "_MAILLE", i, "km.png")
+    png(
+      file = file.path(fig_folder, filej),
+      width = 1200,
+      height = 1000,
+      res = 200
+    )
+    plot(
+      mailles,
+      y = j,
+      border = NA,
+      main = paste(j, "- Maille", i, "km"),
+      breaks = 6,
+      breakby = "cases"
+    )
+    dev.off()
+  }
+
+  write.csv(
+    data.frame(mailles),
+    file.path(ind_folder, paste0("MAILLE", i, "km_NITRATE_2025.csv")),
+    row.names = FALSE
+  )
 }
-
-write.csv(
-  data.frame(mailles),
-  file.path(ind_folder, "MAILLE_NITRATE_2025.csv"),
-  row.names = FALSE
-)
-
 # Checkout possible issues ----------------
 
 # check which commune in EauPotable

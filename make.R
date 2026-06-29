@@ -69,11 +69,19 @@ shiny::runApp(app_path, display.mode = "normal")
 
 # and deploy it (if needed)
 # file_app <- rsconnect::listDeploymentFiles(app_path)
-# file_app <- file_app[!file_app %in% "miniapp.R"]
-# rsconnect::deployApp(
-#   appDir = app_path,
-#   appFiles = file_app,
-#   appName = "Motiver_megatrends",
-#   appTitle = "Motiver Megatrends"
-# )
-# # 15Mb
+file_app <- c(
+  "about.md",
+  "data/commune.gpkg",
+  "data/mailles_10km.gpkg",
+  "data/megatrends_metadata.csv",
+  "global.R",
+  "server.R",
+  "ui.R"
+)
+rsconnect::deployApp(
+  appDir = app_path,
+  appFiles = file_app,
+  appName = "Motiver_megatrends",
+  appTitle = "Motiver Megatrends"
+)
+# 15Mb
