@@ -30,6 +30,32 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...) {
   }
 }
 
+panel.smooth.max <- function(
+  x,
+  y,
+  col = par("col"),
+  bg = NA,
+  pch = par("pch"),
+  cex = 1,
+  col.smooth = 2,
+  span = 2 / 3,
+  iter = 3,
+  maxN = 50000,
+  ...
+) {
+  ok <- is.finite(x) & is.finite(y)
+  if (sum(ok) > maxN) {
+    ok <- sample(which(ok), size = maxN, replace = FALSE)
+  }
+  points(x[ok], y[ok], pch = pch, col = col, bg = bg, cex = cex)
+  if (any(ok)) {
+    lines(
+      stats::lowess(x[ok], y[ok], f = span, iter = iter),
+      col = col.smooth,
+      ...
+    )
+  }
+}
 
 panel.eqline <- function(
   x,

@@ -85,7 +85,7 @@ indC <- outC[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
 names(indC) <- sapply(strsplit(names(indC), "_"), function(x) {
   paste(x[1], x[2], sep = "\n")
 })
-pairs(indC, lower.panel = panel.smooth, upper.panel = panel.cor)
+pairs(indC, lower.panel = panel.smooth.max, upper.panel = panel.cor)
 ```
 
 ## maille10km
@@ -98,7 +98,7 @@ indM <- outM10[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
 names(indM) <- sapply(strsplit(names(indM), "_"), function(x) {
   paste(x[1], x[2], sep = "\n")
 })
-pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
+pairs(indM, lower.panel = panel.smooth.max, upper.panel = panel.cor)
 ```
 
 ## maille5km
@@ -111,7 +111,7 @@ indM <- outM5[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
 names(indM) <- sapply(strsplit(names(indM), "_"), function(x) {
   paste(x[1], x[2], sep = "\n")
 })
-pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
+pairs(indM, lower.panel = panel.smooth.max, upper.panel = panel.cor)
 ```
 
 ## maille1km
@@ -124,7 +124,7 @@ indM <- outM1[, ps$Name[ps$Name != "CROP_DOMINANT_2023"]]
 names(indM) <- sapply(strsplit(names(indM), "_"), function(x) {
   paste(x[1], x[2], sep = "\n")
 })
-pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
+pairs(indM, lower.panel = panel.smooth.max, upper.panel = panel.cor)
 ```
 
 ::: 
@@ -135,21 +135,21 @@ pairs(indM, lower.panel = panel.smooth, upper.panel = panel.cor)
 
 ```{r}
 #| label: tbl-numberba
-#| tbl-cap: "Number of NAs per variable and per spatial resolution"
+#| tbl-cap: "Percentage of NAs per variable and per spatial resolution"
 naC <- apply(is.na(outC[, ps$Name]), 2, sum)
 naM10 <- apply(is.na(outM10[, ps$Name]), 2, sum)
 naM5 <- apply(is.na(outM5[, ps$Name]), 2, sum)
 naM1 <- apply(is.na(outM1[, ps$Name]), 2, sum)
 
 nna <- data.frame(
-  "NAs_Commune" = naC,
-  "NA_perc_Commune" = round(naC / nrow(outC) * 100, 1),
-  "NAs_Maille_10km" = naM10,
-  "NA_perc_Maille_10km" = round(naM10 / nrow(outM10) * 100, 1),
-  "NAs_Maille_5km" = naM5,
-  "NA_perc_Maille_5km" = round(naM5 / nrow(outM5) * 100, 1),
-  "NAs_Maille_1km" = naM1,
-  "NA_perc_Maille_1km" = round(naM1 / nrow(outM1) * 100, 1)
+  #"NAs_Commune" = naC,
+  "NA_Commune" = round(naC / nrow(outC) * 100, 1),
+  #"NAs_Maille_10km" = naM10,
+  "NA_Maille_10km" = round(naM10 / nrow(outM10) * 100, 1),
+  #"NAs_Maille_5km" = naM5,
+  "NA_Maille_5km" = round(naM5 / nrow(outM5) * 100, 1),
+  #"NAs_Maille_1km" = naM1,
+  "NA_Maille_1km" = round(naM1 / nrow(outM1) * 100, 1)
 )
 knitr::kable(nna)
 ```
