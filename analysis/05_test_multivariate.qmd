@@ -12,9 +12,9 @@ execute:
 
 ## Objective
 
-The idea is to use a *multivariate* length and see :  
+The idea is to use a *multivariate* lens and explore :  
 
-- what are the main political stringency "axis" : i.e. differences among communes in political stringency indicators across France
+- what are the main political stringency "axis" i.e. the main differences among communes in political stringency indicators across France?
 - are the main axis of variations in political stringency indicators similar if calculated per regions?
 
 
@@ -90,12 +90,14 @@ knitr::kable(reg_df, row.names = FALSE)
 ## scaled variables
 
 ```{r}
+par(mar = c(14, 4, 1, 1))
 boxplot(scale(ind), las = 2)
 ```
 
 ## square root transformed
 
 ```{r}
+par(mar = c(14, 4, 1, 1))
 boxplot(scale(apply(ind, 2, sqrt)), las = 2)
 ```
 
@@ -116,12 +118,12 @@ ade4::s.arrow(pca1$co * 5, add.plot = TRUE)
 mtext(
   text = paste0("PC1 - ", round(pca1$eig[1] / sum(pca1$eig) * 100), "%"),
   side = 1,
-  line = 2
+  line = 3
 )
 mtext(
   text = paste0("PC2 - ", round(pca1$eig[2] / sum(pca1$eig) * 100), "%"),
   side = 2,
-  line = 2
+  line = 3
 )
 ```
 
