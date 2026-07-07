@@ -85,3 +85,6 @@ rsconnect::deployApp(
   appTitle = "Motiver Megatrends"
 )
 # 15Mb
+
+# 5. Test multivariate approach
+quarto::quarto_render("analysis/05_test_multivariate.qmd")
