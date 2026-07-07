@@ -14,13 +14,14 @@ execute:
 
 The idea is to use a *multivariate* length and see :  
 
-- what are the main political stringency "axis" : i.e. differences among communes in political stringency indicators
+- what are the main political stringency "axis" : i.e. differences among communes in political stringency indicators across France
 - are the main axis of variations in political stringency indicators similar if calculated per regions?
 
 
 ```{r}
 # Load home made functions
 devtools::load_all()
+library(ade4)
 
 ref_folder <- here::here("data", "derived-data", "ref")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
@@ -77,22 +78,12 @@ knitr::kable(ps)
 
 #### Regions
 
-| Code | Region                     |
-|------|----------------------------|
-| 11   | ILE DE FRANCE              |
-| 24   | CENTRE VAL DE LOIRE        |
-| 27   | BOURGOGNE FRANCHE COMTE    |
-| 28   | NORMANDIE                  |
-| 32   | HAUTS DE FRANCE            |
-| 44   | GRAND EST                  |
-| 52   | PAYS DE LA LOIRE           |
-| 53   | BRETAGNE                   |
-| 75   | NOUVELLE AQUITAINE         |
-| 76   | OCCITANIE                  |
-| 84   | AUVERGNE RHONE ALPES       |
-| 93   | PROVENCE ALPES COTE D AZUR |
-| 94   | CORSE                      |
-
+```{r}
+reg_df <- read.csv(here::here("data", "raw-data", "ref", "v_region_2026.csv"))
+reg_df <- reg_df[reg_df$REG %in% df$INSEE_REG, c("REG", "NCC")]
+names(reg_df) <- c("Code", "Name")
+knitr::kable(reg_df, row.names = FALSE)
+```
 
 
 ::: {.panel-tabset}
@@ -114,8 +105,6 @@ boxplot(scale(apply(ind, 2, sqrt)), las = 2)
 ## France scale
 
 ```{r}
-library(ade4)
-
 pca1 <- ade4::dudi.pca(
   apply(ind, 2, sqrt),
   scannf = FALSE,
@@ -124,6 +113,16 @@ pca1 <- ade4::dudi.pca(
 
 ade4::s.class(pca1$li, as.factor(df$INSEE_REG), col = rainbow(13))
 ade4::s.arrow(pca1$co * 5, add.plot = TRUE)
+mtext(
+  text = paste0("PC1 - ", round(pca1$eig[1] / sum(pca1$eig) * 100), "%"),
+  side = 1,
+  line = 2
+)
+mtext(
+  text = paste0("PC2 - ", round(pca1$eig[2] / sum(pca1$eig) * 100), "%"),
+  side = 2,
+  line = 2
+)
 ```
 
 
@@ -182,6 +181,7 @@ colnames(PC2) <- lab2
 rownames(PC2) <- row.names(pca1$co)
 
 reg <- sort(unique(df$INSEE_REG))
+info <- c()
 for (i in reg) {
   df_reg <- ind[df$INSEE_REG == i, ]
   pca_i <- ade4::dudi.pca(
@@ -213,6 +213,15 @@ for (i in reg) {
     round(pca_i$eig[2] / sum(pca_i$eig) * 100), "P")
   PC2 <- cbind(PC2, pca_i$co[, 2])
   names(PC2)[ncol(PC2)] <- lab2_i
+
+  ifi <- c(
+    "Name" = reg_df$Name[reg_df$Code == i],
+    "varPC1" = round(pca_i$eig[1] / sum(pca_i$eig) * 100, 2),
+    "corPC1" = round(cor(pca_i$co[, 1], varPC1), 2),
+    "varPC2" = round(pca_i$eig[2] / sum(pca_i$eig) * 100, 2),
+    "corPC2" = round(cor(pca_i$co[, 2], varPC2), 2)
+  )
+  info <- rbind(info, ifi)
 }
 ```
 
@@ -285,3 +294,9 @@ legend(
 )
 ```
 ::: 
+
+
+
+```{r}
+knitr::kable(info, row.names = FALSE)
+```

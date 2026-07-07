@@ -88,3 +88,6 @@ rsconnect::deployApp(
 
 # 5. Test multivariate approach
 quarto::quarto_render("analysis/05_test_multivariate.qmd")
+
+
+quarto::quarto_render("index.qmd")
