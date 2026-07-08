@@ -9,7 +9,7 @@
 <meta name="author" content="Romain Frelat">
 <meta name="dcterms.date" content="2026-07-08">
 
-<title>Stability of political stringency - A multivariate approach</title>
+<title>A multivariate approach</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -72,6 +72,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -90,9 +119,13 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#objective" id="toc-objective" class="nav-link active" data-scroll-target="#objective">Objective</a>
   <ul class="collapse">
   <li><a href="#background-information" id="toc-background-information" class="nav-link" data-scroll-target="#background-information">Background information</a></li>
+  <li><a href="#variables" id="toc-variables" class="nav-link" data-scroll-target="#variables">Variables</a></li>
+  <li><a href="#remove-outliers" id="toc-remove-outliers" class="nav-link" data-scroll-target="#remove-outliers">Remove outliers</a></li>
   </ul></li>
-  <li><a href="#france-scale" id="toc-france-scale" class="nav-link" data-scroll-target="#france-scale">France scale</a></li>
-  <li><a href="#regional-effect" id="toc-regional-effect" class="nav-link" data-scroll-target="#regional-effect">Regional effect</a></li>
+  <li><a href="#correlation" id="toc-correlation" class="nav-link" data-scroll-target="#correlation">Correlation</a></li>
+  <li><a href="#principal-component-analysis" id="toc-principal-component-analysis" class="nav-link" data-scroll-target="#principal-component-analysis">Principal Component Analysis</a></li>
+  <li><a href="#maps" id="toc-maps" class="nav-link" data-scroll-target="#maps">Maps</a></li>
+  <li><a href="#loadings" id="toc-loadings" class="nav-link" data-scroll-target="#loadings">Loadings</a></li>
   </ul>
 </nav>
     </div>
@@ -101,7 +134,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Stability of political stringency - A multivariate approach</h1>
+<h1 class="title">A multivariate approach</h1>
 </div>
 
 
@@ -132,23 +165,20 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="objective" class="level2">
 <h2 class="anchored" data-anchor-id="objective">Objective</h2>
-<p>The idea is to use a <em>multivariate</em> lens and explore :</p>
-<ul>
-<li>what are the main political stringency “axis” i.e.&nbsp;the main differences among communes in political stringency indicators across France?</li>
-<li>are the main axis of variations in political stringency indicators similar if calculated per regions?</li>
-</ul>
+<p>The idea is to use make a PCA over <em>political stringency</em> indicators to understand what are the main political stringency “axis” i.e.&nbsp;the main differences among communes in political stringency indicators across France?</p>
 <section id="background-information" class="level3">
 <h3 class="anchored" data-anchor-id="background-information">Background information</h3>
-<section id="variables" class="level4">
-<h4 class="anchored" data-anchor-id="variables">Variables</h4>
+</section>
+<section id="variables" class="level3">
+<h3 class="anchored" data-anchor-id="variables">Variables</h3>
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 8%">
-<col style="width: 79%">
+<col style="width: 9%">
+<col style="width: 77%">
 <col style="width: 3%">
-<col style="width: 1%">
+<col style="width: 2%">
 <col style="width: 7%">
 </colgroup>
 <thead>
@@ -162,43 +192,85 @@ ul.task-list li input[type="checkbox"] {
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">BIO_AREA_PCT_2024</td>
-<td style="text-align: left;">percentage of organic farming over the total cultivated area (CULTIVATED_AREA_HA)</td>
+<td style="text-align: left;">BIO_AREA_HA_2024</td>
+<td style="text-align: left;">area of land cultivated as organic farming</td>
 <td style="text-align: left;">2024</td>
-<td style="text-align: left;">%</td>
-<td style="text-align: left;">Cartobio + RPG</td>
+<td style="text-align: left;">ha</td>
+<td style="text-align: left;">Cartobio</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">PROT_AREA_PCT_2026</td>
-<td style="text-align: left;">Percentage of protected area relative to the area of the spatial unit</td>
+<td style="text-align: left;">PROT_AREA_HA_2026</td>
+<td style="text-align: left;">Area under protection (National parks, ZNIEFF, Natura 2000 etc.)</td>
 <td style="text-align: left;">2026</td>
-<td style="text-align: left;">%</td>
+<td style="text-align: left;">ha</td>
 <td style="text-align: left;">WDPA</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">HVE_N_2024</td>
+<td style="text-align: left;">number of ‘high environmental certified’</td>
+<td style="text-align: left;">2024</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">MASA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">GREENSUBS_N_2022</td>
+<td style="text-align: left;">number of green subventions received per commune</td>
+<td style="text-align: left;">2022</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">Telepac</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">GREENSUBS_kEUR_per_HA_2022</td>
+<td style="text-align: left;">subsidies per cultivated area</td>
+<td style="text-align: left;">2022</td>
+<td style="text-align: left;">kEUR/ha</td>
+<td style="text-align: left;">Telepac</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">PESTICIDE_EXPOSURE_2022</td>
 <td style="text-align: left;">Combined exposure in toxic, carcinogenic, mutagenic, reprotoxic active substances from the scaled concentrations in air and water and treatment intensity index, designed to vary between 0 and 3 (historical data between 0 and 1.5)</td>
 <td style="text-align: left;">2022</td>
 <td style="text-align: left;">NA</td>
 <td style="text-align: left;">Rigal and Perrot 2025</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">CROP_DIV_SHANNON_2023</td>
 <td style="text-align: left;">Shannon index calculated with all RPG classes</td>
 <td style="text-align: left;">2023</td>
 <td style="text-align: left;">NA</td>
 <td style="text-align: left;">RPG</td>
 </tr>
-<tr class="odd">
-<td style="text-align: left;">FALLOW_AREA_PCT_2023</td>
-<td style="text-align: left;">% of fallow relative to the total area of the municipality</td>
+<tr class="even">
+<td style="text-align: left;">CULTIVATED_AREA_PCT_2023</td>
+<td style="text-align: left;">percentage of area cultivated (over the area of spatial unit)</td>
 <td style="text-align: left;">2023</td>
 <td style="text-align: left;">%</td>
 <td style="text-align: left;">RPG</td>
 </tr>
+<tr class="odd">
+<td style="text-align: left;">FALLOW_AREA_HA_2023</td>
+<td style="text-align: left;">Area with fallow (code J5M, J6P, J6S, JAC, and JNO in RPG)</td>
+<td style="text-align: left;">2023</td>
+<td style="text-align: left;">ha</td>
+<td style="text-align: left;">RPG</td>
+</tr>
 <tr class="even">
-<td style="text-align: left;">CROPROT_INV_SIM_1523</td>
-<td style="text-align: left;">Inverse Simpson index of crop rotation diversity</td>
+<td style="text-align: left;">CROPROT_N_CULT_1523</td>
+<td style="text-align: left;">Average number of different crops in 2015-2023 (max = 9)</td>
+<td style="text-align: left;">2015-2023</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">RPG successions</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CROPROT_N_MAX_1523</td>
+<td style="text-align: left;">Nomber of occurrences of the dominant crop</td>
+<td style="text-align: left;">2015-2023</td>
+<td style="text-align: left;">NA</td>
+<td style="text-align: left;">RPG successions</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CROPROT_N_PT_1523</td>
+<td style="text-align: left;">Number of fallow in the crop rotations</td>
 <td style="text-align: left;">2015-2023</td>
 <td style="text-align: left;">NA</td>
 <td style="text-align: left;">RPG successions</td>
@@ -208,74 +280,15 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </section>
-<section id="regions" class="level4">
-<h4 class="anchored" data-anchor-id="regions">Regions</h4>
-<div class="cell">
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<thead>
-<tr class="header">
-<th style="text-align: right;">Code</th>
-<th style="text-align: left;">Name</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">11</td>
-<td style="text-align: left;">ILE DE FRANCE</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">24</td>
-<td style="text-align: left;">CENTRE VAL DE LOIRE</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">27</td>
-<td style="text-align: left;">BOURGOGNE FRANCHE COMTE</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">28</td>
-<td style="text-align: left;">NORMANDIE</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">32</td>
-<td style="text-align: left;">HAUTS DE FRANCE</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">44</td>
-<td style="text-align: left;">GRAND EST</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">52</td>
-<td style="text-align: left;">PAYS DE LA LOIRE</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">53</td>
-<td style="text-align: left;">BRETAGNE</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">75</td>
-<td style="text-align: left;">NOUVELLE AQUITAINE</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">76</td>
-<td style="text-align: left;">OCCITANIE</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">84</td>
-<td style="text-align: left;">AUVERGNE RHONE ALPES</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">93</td>
-<td style="text-align: left;">PROVENCE ALPES COTE D AZUR</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">94</td>
-<td style="text-align: left;">CORSE</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<section id="remove-outliers" class="level3">
+<h3 class="anchored" data-anchor-id="remove-outliers">Remove outliers</h3>
+<p>We decided to remove:</p>
+<ul>
+<li>municipalities with missing values on the indicators (N=<code>2899</code>)</li>
+<li>Corsica municipalities (N=<code>360</code>)</li>
+<li>outliers identified as <span class="math inline">\(mean ± 5 * sd\)</span> (N = 747)</li>
+</ul>
+<p>At the end, we have a table made of <code>31043</code> municipalities and <code>12</code> variables.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">scaled variables</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">square root transformed</a></li></ul>
 <div class="tab-content">
@@ -284,7 +297,7 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05_test_multivariate_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -295,7 +308,7 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05_test_multivariate_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -305,27 +318,38 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </section>
 </section>
-</section>
-<section id="france-scale" class="level2">
-<h2 class="anchored" data-anchor-id="france-scale">France scale</h2>
+<section id="correlation" class="level2">
+<h2 class="anchored" data-anchor-id="correlation">Correlation</h2>
 <div class="cell">
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05_test_multivariate_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="principal-component-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="principal-component-analysis">Principal Component Analysis</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">PC1</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">PC2</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">PC1 - PC2</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">PC1 - PC3</a></li></ul>
 <div class="tab-content">
 <div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
 <div class="cell">
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05_test_multivariate_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -336,7 +360,7 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05_test_multivariate_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -345,17 +369,17 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </section>
-<section id="regional-effect" class="level2">
-<h2 class="anchored" data-anchor-id="regional-effect">Regional effect</h2>
+<section id="maps" class="level2">
+<h2 class="anchored" data-anchor-id="maps">Maps</h2>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">PC1</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">PC2</a></li></ul>
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">PC1</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">PC2</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false" href="">PC3</a></li></ul>
 <div class="tab-content">
 <div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05_test_multivariate_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -366,7 +390,59 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="05_test_multivariate_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-3-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-3-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="loadings" class="level2">
+<h2 class="anchored" data-anchor-id="loadings">Loadings</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">PC1</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">PC2</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-3" role="tab" aria-controls="tabset-4-3" aria-selected="false" href="">PC3</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-4-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-3-tab">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="06_test_pca_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -379,104 +455,84 @@ ul.task-list li input[type="checkbox"] {
 <table class="caption-top table table-sm table-striped small">
 <thead>
 <tr class="header">
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">varPC1</th>
-<th style="text-align: left;">corPC1</th>
-<th style="text-align: left;">varPC2</th>
-<th style="text-align: left;">corPC2</th>
+<th style="text-align: left;"></th>
+<th style="text-align: right;">Comp1</th>
+<th style="text-align: right;">Comp2</th>
+<th style="text-align: right;">Comp3</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">ILE DE FRANCE</td>
-<td style="text-align: left;">29.85</td>
-<td style="text-align: left;">0.66</td>
-<td style="text-align: left;">21.53</td>
-<td style="text-align: left;">0.97</td>
+<td style="text-align: left;">BIO_AREA_HA_2024</td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">-0.71</td>
+<td style="text-align: right;">0.16</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">CENTRE VAL DE LOIRE</td>
-<td style="text-align: left;">25.88</td>
-<td style="text-align: left;">0.66</td>
-<td style="text-align: left;">25.21</td>
-<td style="text-align: left;">0.9</td>
+<td style="text-align: left;">PROT_AREA_HA_2026</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">-0.13</td>
+<td style="text-align: right;">0.14</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">BOURGOGNE FRANCHE COMTE</td>
-<td style="text-align: left;">41.68</td>
-<td style="text-align: left;">0.94</td>
-<td style="text-align: left;">19.56</td>
-<td style="text-align: left;">0.89</td>
+<td style="text-align: left;">HVE_N_2024</td>
+<td style="text-align: right;">0.14</td>
+<td style="text-align: right;">-0.45</td>
+<td style="text-align: right;">0.24</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">NORMANDIE</td>
-<td style="text-align: left;">39.69</td>
-<td style="text-align: left;">0.98</td>
-<td style="text-align: left;">17.48</td>
-<td style="text-align: left;">0.96</td>
+<td style="text-align: left;">GREENSUBS_N_2022</td>
+<td style="text-align: right;">-0.07</td>
+<td style="text-align: right;">-0.72</td>
+<td style="text-align: right;">0.49</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">HAUTS DE FRANCE</td>
-<td style="text-align: left;">29.99</td>
-<td style="text-align: left;">0.95</td>
-<td style="text-align: left;">20.57</td>
-<td style="text-align: left;">0.89</td>
+<td style="text-align: left;">GREENSUBS_kEUR_per_HA_2022</td>
+<td style="text-align: right;">-0.18</td>
+<td style="text-align: right;">-0.25</td>
+<td style="text-align: right;">0.28</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">GRAND EST</td>
-<td style="text-align: left;">33.49</td>
-<td style="text-align: left;">0.98</td>
-<td style="text-align: left;">20.23</td>
-<td style="text-align: left;">0.78</td>
+<td style="text-align: left;">PESTICIDE_EXPOSURE_2022</td>
+<td style="text-align: right;">-0.79</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">-0.08</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">PAYS DE LA LOIRE</td>
-<td style="text-align: left;">28.36</td>
-<td style="text-align: left;">0.94</td>
-<td style="text-align: left;">21.88</td>
-<td style="text-align: left;">0.94</td>
+<td style="text-align: left;">CROP_DIV_SHANNON_2023</td>
+<td style="text-align: right;">-0.68</td>
+<td style="text-align: right;">-0.37</td>
+<td style="text-align: right;">-0.12</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">BRETAGNE</td>
-<td style="text-align: left;">31.38</td>
-<td style="text-align: left;">0.64</td>
-<td style="text-align: left;">22.62</td>
-<td style="text-align: left;">0.82</td>
+<td style="text-align: left;">CULTIVATED_AREA_PCT_2023</td>
+<td style="text-align: right;">-0.55</td>
+<td style="text-align: right;">-0.28</td>
+<td style="text-align: right;">0.03</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">NOUVELLE AQUITAINE</td>
-<td style="text-align: left;">37.46</td>
-<td style="text-align: left;">0.99</td>
-<td style="text-align: left;">21.4</td>
-<td style="text-align: left;">0.9</td>
+<td style="text-align: left;">FALLOW_AREA_HA_2023</td>
+<td style="text-align: right;">-0.56</td>
+<td style="text-align: right;">-0.28</td>
+<td style="text-align: right;">0.14</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">OCCITANIE</td>
-<td style="text-align: left;">42.95</td>
-<td style="text-align: left;">0.95</td>
-<td style="text-align: left;">19.18</td>
-<td style="text-align: left;">0.95</td>
+<td style="text-align: left;">CROPROT_N_CULT_1523</td>
+<td style="text-align: right;">-0.23</td>
+<td style="text-align: right;">-0.38</td>
+<td style="text-align: right;">-0.81</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">AUVERGNE RHONE ALPES</td>
-<td style="text-align: left;">37.37</td>
-<td style="text-align: left;">0.98</td>
-<td style="text-align: left;">20.04</td>
-<td style="text-align: left;">0.95</td>
+<td style="text-align: left;">CROPROT_N_MAX_1523</td>
+<td style="text-align: right;">-0.35</td>
+<td style="text-align: right;">0.49</td>
+<td style="text-align: right;">0.72</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">PROVENCE ALPES COTE D AZUR</td>
-<td style="text-align: left;">34.61</td>
-<td style="text-align: left;">0.95</td>
-<td style="text-align: left;">18.16</td>
-<td style="text-align: left;">0.15</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">CORSE</td>
-<td style="text-align: left;">38.37</td>
-<td style="text-align: left;">0.9</td>
-<td style="text-align: left;">20.84</td>
-<td style="text-align: left;">0.77</td>
+<td style="text-align: left;">CROPROT_N_PT_1523</td>
+<td style="text-align: right;">0.78</td>
+<td style="text-align: right;">-0.35</td>
+<td style="text-align: right;">-0.03</td>
 </tr>
 </tbody>
 </table>

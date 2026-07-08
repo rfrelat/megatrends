@@ -1,0 +1,327 @@
+---
+title: "A multivariate approach"
+author: Romain Frelat
+date: today
+format: 
+  html:
+    toc: true
+execute:
+  echo: false
+  warning: false
+---
+
+## Objective
+
+The idea is to use make a PCA over *political stringency* indicators to understand what are the main political stringency "axis" i.e. the main differences among communes in political stringency indicators across France?
+
+
+```{r}
+# Load home made functions
+devtools::load_all()
+library(ade4)
+
+ref_folder <- here::here("data", "derived-data", "ref")
+ind_folder <- here::here("data", "derived-data", "indicators_csv")
+
+reg <- terra::vect(file.path(ref_folder, "gadm41_FRA_1.json"))
+dep <- terra::vect(file.path(ref_folder, "gadm41_FRA_2.json"))
+shp <- terra::vect(file.path(ref_folder, "commune_simple0005_4326.gpkg"))
+
+meta <- readxl::read_xlsx(
+  here::here("data", "derived-data", "megatrends_metadata.xlsx")
+)
+# ps_crit <- grepl("stringency", meta$Megatrend)
+ind_crit <- meta$Indicator == "yes"
+ps <- meta[ind_crit, ]
+# var <- c(
+#   "BIO_AREA_PCT_2024",
+#   "PROT_AREA_PCT_2026",
+#   "PESTICIDE_EXPOSURE_2022",
+#   "CROP_DIV_SHANNON_2023",
+#   "FALLOW_AREA_PCT_2023",
+#   "CROPROT_INV_SIM_1523"
+# )
+df <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
+
+# ind <- df[, var]
+ind <- df[, ps$Name]
+```
+
+### Background information
+
+### Variables
+
+```{r}
+#| label: metadata
+# meta <- readxl::read_xlsx(
+#   here::here("data", "derived-data", "megatrends_metadata.xlsx")
+# )
+colC <- c(
+  "Name",
+  "Description",
+  "Year",
+  "Unit",
+  "Source"
+)
+# ps <- meta[meta$Name %in% var, colC]
+ps <- ps[, colC]
+knitr::kable(ps)
+```
+
+
+### Remove outliers
+
+We decided to remove:  
+
+- municipalities with missing values on the indicators  (N=```r sum(!complete.cases(ind))```)
+- Corsica municipalities (N=```r sum(df$INSEE_REG == 94)```)
+- outliers identified as $mean ± 5 * sd$ (N = 747)
+
+
+```{r} 
+# remove NAs and remove Corsica
+keep <- complete.cases(ind) & df$INSEE_REG != 94
+ind <- ind[keep, ]
+df <- df[keep, ]
+
+iqr_var <- apply(ind, 2, sd)
+med_var <- apply(ind, 2, mean)
+low_th <- med_var - iqr_var * 5
+high_th <- med_var + iqr_var * 5
+
+out <- t(t(ind) < low_th | t(ind) > high_th)
+# apply(out, 2, sum)
+# table(apply(out, 1, any))
+keep <- !apply(out, 1, any)
+# table(keep)
+ind <- ind[keep, ]
+df <- df[keep, ]
+
+shp <- shp[match(df$INSEE_COM, shp$INSEE_COM)]
+```
+
+At the end, we have a table made of ```r nrow(ind)``` municipalities and ```r ncol(ind)``` variables.
+
+::: {.panel-tabset}
+## scaled variables
+
+```{r}
+par(mar = c(14, 4, 1, 1))
+boxplot(scale(ind), las = 2)
+```
+
+## square root transformed
+
+```{r}
+par(mar = c(14, 4, 1, 1))
+boxplot(scale(apply(ind, 2, sqrt)), las = 2)
+```
+
+::: 
+
+
+
+## Correlation
+
+```{r}
+# names(ind) <- sapply(strsplit(names(ind), "_"), function(x) {
+#   paste(x[1], x[2], sep = "\n")
+# })
+# pairs(ind, lower.panel = panel.smooth.max, upper.panel = panel.cor)
+corrplot::corrplot(
+  cor(ind, method = "spearman"),
+  method = 'number',
+  type = 'upper',
+  diag = FALSE
+)
+```
+
+
+## Principal Component Analysis
+
+```{r}
+pca1 <- ade4::dudi.pca(
+  apply(ind, 2, log1p),
+  scannf = FALSE,
+  nf = 4
+)
+
+barplot(
+  pca1$eig / sum(pca1$eig) * 100,
+  ylab = "% variance explained",
+  col = c(rep("black", 3), rep("grey", ncol(ind) - 3))
+)
+```
+
+::: {.panel-tabset}
+## PC1 - PC2
+
+```{r}
+ade4::s.class(pca1$li, as.factor(df$INSEE_REG), col = rainbow(13))
+ade4::s.arrow(pca1$co * 5, add.plot = TRUE)
+mtext(
+  text = paste0("PC1 - ", round(pca1$eig[1] / sum(pca1$eig) * 100), "%"),
+  side = 1,
+  line = 3
+)
+mtext(
+  text = paste0("PC2 - ", round(pca1$eig[2] / sum(pca1$eig) * 100), "%"),
+  side = 2,
+  line = 3
+)
+```
+
+## PC1 - PC3
+
+```{r}
+ade4::s.class(
+  pca1$li,
+  as.factor(df$INSEE_REG),
+  col = rainbow(13),
+  xax = 1,
+  yax = 3
+)
+ade4::s.arrow(pca1$co * 5, add.plot = TRUE, xax = 1, yax = 3)
+mtext(
+  text = paste0("PC1 - ", round(pca1$eig[1] / sum(pca1$eig) * 100), "%"),
+  side = 1,
+  line = 3
+)
+mtext(
+  text = paste0("PC3 - ", round(pca1$eig[3] / sum(pca1$eig) * 100), "%"),
+  side = 2,
+  line = 3
+)
+```
+
+:::
+
+## Maps
+
+::: {.panel-tabset}
+## PC1
+```{r}
+minmax1 <- max(abs(pca1$li[, 1]))
+shp$PC1 <- pca1$li[, 1]
+
+# PC1
+terra::plot(
+  shp,
+  "PC1",
+  main = "PC1",
+  border = NA,
+  breaks = seq(-minmax1, minmax1, length.out = 7)
+)
+terra::plot(reg, add = TRUE, lwd = 2)
+
+lengthname <- nchar(row.names(pca1$co))
+shortlength <- ifelse(lengthname > 15, 15, lengthname)
+shortname <- substr(row.names(pca1$co), 1, shortlength)
+
+od1 <- order(pca1$co[, 1])
+load1 <- paste(shortname[od1], round(pca1$co[od1, 1], 2), sep = ":")
+legend(8.3, 48, load1, xpd = NA, bty = "n", cex = 0.6)
+```
+
+## PC2
+
+```{r}
+minmax2 <- max(abs(pca1$li[, 2]))
+shp$PC2 <- pca1$li[, 2]
+# PC2
+terra::plot(
+  shp,
+  "PC2",
+  main = "PC2",
+  border = NA,
+  breaks = seq(-minmax2, minmax2, length.out = 7)
+)
+terra::plot(reg, add = TRUE, lwd = 2)
+
+od2 <- order(pca1$co[, 2])
+load2 <- paste(shortname[od2], round(pca1$co[od2, 2], 2), sep = ":")
+legend(8.3, 48, load2, xpd = NA, bty = "n", cex = 0.6)
+```
+
+## PC3
+
+```{r}
+minmax3 <- max(abs(pca1$li[, 3]))
+shp$PC3 <- pca1$li[, 3]
+# PC2
+terra::plot(
+  shp,
+  "PC3",
+  main = "PC3",
+  border = NA,
+  breaks = seq(-minmax3, minmax3, length.out = 7)
+)
+terra::plot(reg, add = TRUE, lwd = 2)
+
+od3 <- order(pca1$co[, 3])
+load3 <- paste(shortname[od3], round(pca1$co[od3, 3], 2), sep = ":")
+legend(8.3, 48, load3, xpd = NA, bty = "n", cex = 0.6)
+```
+
+::: 
+
+
+## Loadings
+
+
+::: {.panel-tabset}
+## PC1
+
+```{r}
+ord1 <- order(pca1$co[, 1])
+
+dotchart(
+  pca1$co[ord1, 1],
+  pch = 16,
+  pt.cex = 1.5,
+  labels = row.names(pca1$co)[ord1],
+  main = "PC1"
+)
+
+abline(v = 0, lty = 2)
+```
+
+## PC2
+
+```{r}
+ord2 <- order(pca1$co[, 2])
+
+dotchart(
+  pca1$co[ord2, 2],
+  pch = 16,
+  pt.cex = 1.5,
+  labels = row.names(pca1$co)[ord2],
+  main = "PC2"
+)
+
+abline(v = 0, lty = 2)
+```
+
+## PC3
+
+```{r}
+ord3 <- order(pca1$co[, 3])
+
+dotchart(
+  pca1$co[ord3, 3],
+  pch = 16,
+  pt.cex = 1.5,
+  labels = row.names(pca1$co)[ord3],
+  main = "PC3"
+)
+
+abline(v = 0, lty = 2)
+```
+
+
+::: 
+
+
+```{r}
+knitr::kable(round(pca1$co[, 1:3], 2), row.names = TRUE)
+```

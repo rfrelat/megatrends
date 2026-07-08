@@ -91,3 +91,7 @@ for (i in scales) {
     append = FALSE
   )
 }
+
+# export as csv file
+# outi <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
+# apply(!is.na(outi), 2, sum) / nrow(outi) * 100
