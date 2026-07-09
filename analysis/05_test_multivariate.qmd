@@ -39,6 +39,7 @@ shp <- terra::vect(file.path(ref_folder, "commune_simple0005_4326.gpkg"))
 var <- c(
   "BIO_AREA_PCT_2024",
   "PROT_AREA_PCT_2026",
+  "GREENSUBS_N_2022",
   "PESTICIDE_EXPOSURE_2022",
   "CROP_DIV_SHANNON_2023",
   "FALLOW_AREA_PCT_2023",

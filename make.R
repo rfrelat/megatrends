@@ -92,4 +92,5 @@ quarto::quarto_render("analysis/05_test_multivariate.qmd")
 # 6. PCA group work
 quarto::quarto_render("analysis/06_test_pca.qmd")
 
+# index
 quarto::quarto_render("index.qmd")

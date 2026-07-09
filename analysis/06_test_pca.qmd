@@ -4,9 +4,10 @@ author: Romain Frelat
 date: today
 format: 
   html:
+    code-fold: true
     toc: true
 execute:
-  echo: false
+  echo: true
   warning: false
 ---
 
@@ -16,35 +17,29 @@ The idea is to use make a PCA over *political stringency* indicators to understa
 
 
 ```{r}
+#| echo: false
+
 # Load home made functions
 devtools::load_all()
 library(ade4)
 
 ref_folder <- here::here("data", "derived-data", "ref")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
+out_folder <- here::here("data", "derived-data", "pca_output")
 
 reg <- terra::vect(file.path(ref_folder, "gadm41_FRA_1.json"))
-dep <- terra::vect(file.path(ref_folder, "gadm41_FRA_2.json"))
+# dep <- terra::vect(file.path(ref_folder, "gadm41_FRA_2.json"))
 shp <- terra::vect(file.path(ref_folder, "commune_simple0005_4326.gpkg"))
 
-meta <- readxl::read_xlsx(
-  here::here("data", "derived-data", "megatrends_metadata.xlsx")
-)
+meta <- readxl::read_xlsx(here::here("progress", "megatrends_metadata.xlsx"))
+
 # ps_crit <- grepl("stringency", meta$Megatrend)
 ind_crit <- meta$Indicator == "yes"
 ps <- meta[ind_crit, ]
-# var <- c(
-#   "BIO_AREA_PCT_2024",
-#   "PROT_AREA_PCT_2026",
-#   "PESTICIDE_EXPOSURE_2022",
-#   "CROP_DIV_SHANNON_2023",
-#   "FALLOW_AREA_PCT_2023",
-#   "CROPROT_INV_SIM_1523"
-# )
-df <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
 
-# ind <- df[, var]
-ind <- df[, ps$Name]
+dfI <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
+
+ind <- dfI[, ps$Name]
 ```
 
 ### Background information
@@ -53,9 +48,7 @@ ind <- df[, ps$Name]
 
 ```{r}
 #| label: metadata
-# meta <- readxl::read_xlsx(
-#   here::here("data", "derived-data", "megatrends_metadata.xlsx")
-# )
+#| echo: false
 colC <- c(
   "Name",
   "Description",
@@ -63,7 +56,6 @@ colC <- c(
   "Unit",
   "Source"
 )
-# ps <- meta[meta$Name %in% var, colC]
 ps <- ps[, colC]
 knitr::kable(ps)
 ```
@@ -71,50 +63,69 @@ knitr::kable(ps)
 
 ### Remove outliers
 
-We decided to remove:  
-
-- municipalities with missing values on the indicators  (N=```r sum(!complete.cases(ind))```)
-- Corsica municipalities (N=```r sum(df$INSEE_REG == 94)```)
-- outliers identified as $mean ± 5 * sd$ (N = 747)
-
-
 ```{r} 
 # remove NAs and remove Corsica
-keep <- complete.cases(ind) & df$INSEE_REG != 94
-ind <- ind[keep, ]
-df <- df[keep, ]
+keep <- complete.cases(ind) & dfI$INSEE_REG != 94
+indF <- ind[keep, ]
+df <- dfI[keep, ]
 
-iqr_var <- apply(ind, 2, sd)
-med_var <- apply(ind, 2, mean)
+iqr_var <- apply(indF, 2, sd)
+med_var <- apply(indF, 2, mean)
 low_th <- med_var - iqr_var * 5
 high_th <- med_var + iqr_var * 5
 
-out <- t(t(ind) < low_th | t(ind) > high_th)
+out <- t(t(indF) < low_th | t(indF) > high_th)
 # apply(out, 2, sum)
 # table(apply(out, 1, any))
-keep <- !apply(out, 1, any)
+rm_outlier <- apply(out, 1, any)
 # table(keep)
-ind <- ind[keep, ]
-df <- df[keep, ]
+indF <- indF[!rm_outlier, ]
+df <- df[!rm_outlier, ]
 
 shp <- shp[match(df$INSEE_COM, shp$INSEE_COM)]
 ```
 
-At the end, we have a table made of ```r nrow(ind)``` municipalities and ```r ncol(ind)``` variables.
+We decided to remove:  
+
+- municipalities with missing values on the indicators  (N=```r sum(!complete.cases(ind))```)
+- Corsica municipalities (N=```r sum(dfI$INSEE_REG == 94)```)
+- outliers identified as $mean ± 5 * sd$ (N = ```r sum(rm_outlier)```)
+
+
+At the end, we have a table made of ```r nrow(indF)``` municipalities and ```r ncol(indF)``` variables.
 
 ::: {.panel-tabset}
-## scaled variables
+##  square root transformed scaled variables
 
 ```{r}
 par(mar = c(14, 4, 1, 1))
-boxplot(scale(ind), las = 2)
+boxplot(
+  scale(apply(indF, 2, sqrt)),
+  las = 2,
+  main = "sqrt - no outliers"
+)
 ```
 
-## square root transformed
+## with outlier
 
 ```{r}
 par(mar = c(14, 4, 1, 1))
-boxplot(scale(apply(ind, 2, sqrt)), las = 2)
+boxplot(
+  scale(apply(ind, 2, sqrt)),
+  las = 2,
+  main = "sqrt - with outliers",
+)
+```
+
+##  log transformation
+
+```{r}
+par(mar = c(14, 4, 1, 1))
+boxplot(
+  scale(apply(indF, 2, log1p)),
+  las = 2,
+  main = "log - no outliers"
+)
 ```
 
 ::: 
@@ -129,7 +140,7 @@ boxplot(scale(apply(ind, 2, sqrt)), las = 2)
 # })
 # pairs(ind, lower.panel = panel.smooth.max, upper.panel = panel.cor)
 corrplot::corrplot(
-  cor(ind, method = "spearman"),
+  cor(indF, method = "spearman"),
   method = 'number',
   type = 'upper',
   diag = FALSE
@@ -141,7 +152,7 @@ corrplot::corrplot(
 
 ```{r}
 pca1 <- ade4::dudi.pca(
-  apply(ind, 2, log1p),
+  apply(indF, 2, sqrt),
   scannf = FALSE,
   nf = 4
 )
@@ -149,8 +160,15 @@ pca1 <- ade4::dudi.pca(
 barplot(
   pca1$eig / sum(pca1$eig) * 100,
   ylab = "% variance explained",
-  col = c(rep("black", 3), rep("grey", ncol(ind) - 3))
+  col = c(rep("black", 3), rep("grey", ncol(indF) - 3))
 )
+```
+
+```{r}
+#| echo: false
+lengthname <- nchar(row.names(pca1$co))
+shortlength <- ifelse(lengthname > 15, 15, lengthname)
+shortname <- substr(row.names(pca1$co), 1, shortlength)
 ```
 
 ::: {.panel-tabset}
@@ -203,7 +221,6 @@ mtext(
 ```{r}
 minmax1 <- max(abs(pca1$li[, 1]))
 shp$PC1 <- pca1$li[, 1]
-
 # PC1
 terra::plot(
   shp,
@@ -214,9 +231,6 @@ terra::plot(
 )
 terra::plot(reg, add = TRUE, lwd = 2)
 
-lengthname <- nchar(row.names(pca1$co))
-shortlength <- ifelse(lengthname > 15, 15, lengthname)
-shortname <- substr(row.names(pca1$co), 1, shortlength)
 
 od1 <- order(pca1$co[, 1])
 load1 <- paste(shortname[od1], round(pca1$co[od1, 1], 2), sep = ":")
@@ -318,10 +332,120 @@ dotchart(
 abline(v = 0, lty = 2)
 ```
 
-
 ::: 
 
 
 ```{r}
 knitr::kable(round(pca1$co[, 1:3], 2), row.names = TRUE)
+```
+
+
+## Merged map
+
+::: {.panel-tabset}
+## safe scale
+```{r}
+minmax <- max(abs(pca1$li[, 1:3]))
+pp <- (((pca1$li[, 1:3] / minmax) + 1) / 2)
+
+colrgb <- rgb(pp[, 1], pp[, 2], pp[, 3], alpha = 1)
+
+terra::plot(
+  shp,
+  col = colrgb,
+  main = "RGB",
+  border = NA
+)
+
+# Initial plot
+Ternary::TernaryPlot(
+  alab = "PC1 \u2192",
+  blab = "\u2190 PC2",
+  clab = "PC3 \u2192",
+  lab.col = c("red", "darkgreen", "blue"),
+  main = "RGB", # Title
+  point = "right",
+  lab.cex = 0.8,
+  grid.minor.lines = 0,
+  grid.lty = "solid",
+  col = rgb(0.9, 0.9, 0.9),
+  grid.col = "white",
+  axis.col = rgb(0.6, 0.6, 0.6),
+  ticks.col = rgb(0.6, 0.6, 0.6),
+  axis.rotate = FALSE,
+  padding = 0.08,
+  axis.labels = round(seq(-minmax, minmax, length.out = 11), 1)
+)
+
+# Colour the background:
+cols <- Ternary::TernaryPointValues(rgb)
+Ternary::ColourTernary(cols, spectrum = NULL)
+# Add the data to the plot
+Ternary::AddToTernary(graphics::points, pp, pch = ".")
+```
+
+## stretch scale
+```{r}
+scale01 <- function(x) {
+  (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
+}
+pp <- apply(pca1$li[, 1:3], 2, scale01)
+
+colrgb <- rgb(pp[, 1], pp[, 2], pp[, 3], alpha = 1)
+
+terra::plot(
+  shp,
+  col = colrgb,
+  main = "RGB",
+  border = NA
+)
+
+# Initial plot
+Ternary::TernaryPlot(
+  alab = "PC1 \u2192",
+  blab = "\u2190 PC2",
+  clab = "PC3 \u2192",
+  lab.col = c("red", "darkgreen", "blue"),
+  main = "RGB", # Title
+  point = "right",
+  lab.cex = 0.8,
+  grid.minor.lines = 0,
+  grid.lty = "solid",
+  col = rgb(0.9, 0.9, 0.9),
+  grid.col = "white",
+  axis.col = rgb(0.6, 0.6, 0.6),
+  ticks.col = rgb(0.6, 0.6, 0.6),
+  axis.rotate = FALSE,
+  padding = 0.08,
+  axis.labels = c("low", rep("", 9), "high")
+)
+
+# Colour the background:
+cols <- Ternary::TernaryPointValues(rgb)
+Ternary::ColourTernary(cols, spectrum = NULL)
+# Add the data to the plot
+Ternary::AddToTernary(graphics::points, pp, pch = ".")
+```
+
+:::
+
+```{r}
+out <- cbind(
+  df[, c("NOM_M", "INSEE_COM", "INSEE_DEP", "INSEE_REG")],
+  indF,
+  pca1$li[, 1:3]
+)
+
+write.csv(
+  out,
+  file = file.path(out_folder, "PCA_commune.csv"),
+  row.names = FALSE
+)
+
+
+write.csv(
+  pca1$co[, 1:3],
+  file = file.path(out_folder, "PCA_loadings.csv"),
+  row.names = FALSE
+)
 ```
