@@ -95,7 +95,19 @@ We decided to remove:
 At the end, we have a table made of ```r nrow(indF)``` municipalities and ```r ncol(indF)``` variables.
 
 ::: {.panel-tabset}
-##  square root transformed scaled variables
+
+##  no transformation
+
+```{r}
+par(mar = c(14, 4, 1, 1))
+boxplot(
+  scale(indF),
+  las = 2,
+  main = "no outliers"
+)
+```
+
+##  square root
 
 ```{r}
 par(mar = c(14, 4, 1, 1))
@@ -106,18 +118,7 @@ boxplot(
 )
 ```
 
-## with outlier
-
-```{r}
-par(mar = c(14, 4, 1, 1))
-boxplot(
-  scale(apply(ind, 2, sqrt)),
-  las = 2,
-  main = "sqrt - with outliers",
-)
-```
-
-##  log transformation
+##  log
 
 ```{r}
 par(mar = c(14, 4, 1, 1))
@@ -128,6 +129,18 @@ boxplot(
 )
 ```
 
+## sqrt with outlier
+
+```{r}
+par(mar = c(14, 4, 1, 1))
+boxplot(
+  scale(apply(ind, 2, sqrt)),
+  las = 2,
+  main = "sqrt - with outliers",
+)
+```
+
+
 ::: 
 
 
@@ -135,6 +148,9 @@ boxplot(
 ## Correlation
 
 ```{r}
+#| fig-width: 8
+#| fig-height: 8
+
 # names(ind) <- sapply(strsplit(names(ind), "_"), function(x) {
 #   paste(x[1], x[2], sep = "\n")
 # })
@@ -152,7 +168,7 @@ corrplot::corrplot(
 
 ```{r}
 pca1 <- ade4::dudi.pca(
-  apply(indF, 2, sqrt),
+  indF,
   scannf = FALSE,
   nf = 4
 )
@@ -219,6 +235,8 @@ mtext(
 ::: {.panel-tabset}
 ## PC1
 ```{r}
+#| fig-width: 8
+#| fig-height: 8
 minmax1 <- max(abs(pca1$li[, 1]))
 shp$PC1 <- pca1$li[, 1]
 # PC1
@@ -240,6 +258,8 @@ legend(8.3, 48, load1, xpd = NA, bty = "n", cex = 0.6)
 ## PC2
 
 ```{r}
+#| fig-width: 8
+#| fig-height: 8
 minmax2 <- max(abs(pca1$li[, 2]))
 shp$PC2 <- pca1$li[, 2]
 # PC2
@@ -260,6 +280,8 @@ legend(8.3, 48, load2, xpd = NA, bty = "n", cex = 0.6)
 ## PC3
 
 ```{r}
+#| fig-width: 8
+#| fig-height: 8
 minmax3 <- max(abs(pca1$li[, 3]))
 shp$PC3 <- pca1$li[, 3]
 # PC2
@@ -334,17 +356,17 @@ abline(v = 0, lty = 2)
 
 ::: 
 
-
 ```{r}
 knitr::kable(round(pca1$co[, 1:3], 2), row.names = TRUE)
 ```
-
 
 ## Merged map
 
 ::: {.panel-tabset}
 ## safe scale
 ```{r}
+#| fig-width: 8
+#| fig-height: 8
 minmax <- max(abs(pca1$li[, 1:3]))
 pp <- (((pca1$li[, 1:3] / minmax) + 1) / 2)
 
@@ -356,8 +378,10 @@ terra::plot(
   main = "RGB",
   border = NA
 )
+```
 
-# Initial plot
+```{r}
+# Legend
 Ternary::TernaryPlot(
   alab = "PC1 \u2192",
   blab = "\u2190 PC2",
@@ -384,8 +408,11 @@ Ternary::ColourTernary(cols, spectrum = NULL)
 Ternary::AddToTernary(graphics::points, pp, pch = ".")
 ```
 
+
 ## stretch scale
 ```{r}
+#| fig-width: 8
+#| fig-height: 8
 scale01 <- function(x) {
   (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
 }
@@ -399,8 +426,10 @@ terra::plot(
   main = "RGB",
   border = NA
 )
+```
 
-# Initial plot
+```{r}
+# Legend
 Ternary::TernaryPlot(
   alab = "PC1 \u2192",
   blab = "\u2190 PC2",
@@ -430,6 +459,7 @@ Ternary::AddToTernary(graphics::points, pp, pch = ".")
 :::
 
 ```{r}
+# export
 out <- cbind(
   df[, c("NOM_M", "INSEE_COM", "INSEE_DEP", "INSEE_REG")],
   indF,
@@ -442,10 +472,8 @@ write.csv(
   row.names = FALSE
 )
 
-
 write.csv(
   pca1$co[, 1:3],
   file = file.path(out_folder, "PCA_loadings.csv"),
-  row.names = FALSE
 )
 ```

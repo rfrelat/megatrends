@@ -11,6 +11,7 @@ analysis/check*.R
 analysis/.vdoc*
 /.quarto/
 **/*.quarto_ipynb
+analysis/GLM_*
 
 _freeze/
 
