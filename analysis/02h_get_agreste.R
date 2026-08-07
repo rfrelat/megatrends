@@ -1,7 +1,7 @@
 # Script to get socio-economic indicators from Agreste
 #
 # input:
-#   data_Agreste_Commune.csv from https://stats.agriculture.gouv.fr/cartostat/
+#   data_Agreste_Commune20X0.csv from https://stats.agriculture.gouv.fr/cartostat/
 # output:
 #   indicators_csv/COMMUNE_AGRESTE_2020.csv
 #   indicators_csv/MAILLEXkm_AGRESTE_2020.csv
@@ -45,7 +45,7 @@ scales <- c(10, 5, 1) # in km, resolution of the mailles
 
 ## 2A. Age et sexe des exploitants agricoles
 ag <- read.table(
-  file.path(data_folder, "data_Agreste_Commune.csv"),
+  file.path(data_folder, "data_Agreste_Commune2020.csv"),
   skip = 2,
   sep = ";",
   quote = "\"",
@@ -53,7 +53,7 @@ ag <- read.table(
   na.strings = "N/A",
   encoding = "utf8"
 )
-
+# table(commune$INSEE_COM %in% ag$Code) # only 11 missing
 keepC <- c(
   "Part.des.chefs.d.exploitation.et.coexploitants...40.ans..2020",
   "PBS.moyenne.en.2020",
@@ -67,6 +67,30 @@ labC <- c(
   "AGRESTE_Nfarms_2020",
   "AGRESTE_SAU_HA_2020"
 )
+
+
+# ag10 <- read.table(
+#   file.path(data_folder, "data_Agreste_Commune2010.csv"),
+#   skip = 2,
+#   sep = ";",
+#   quote = "\"",
+#   header = TRUE,
+#   na.strings = "N/A",
+#   encoding = "utf8"
+# )
+ag10 <- read.csv(
+  file.path(data_folder, "data_Agreste_Commune2010.csv")
+)
+keepC10 <- c(
+  "Chefs.d.exploitation.et.coexploitants.avec.formation.supérieure...part.en.2010",
+  "SAU.moyenne.par.UTA.2010"
+)
+
+labC10 <- c(
+  "AGRESTE_EDUSUP_PCT_2010",
+  "AGRESTE_FARMSIZE_HA_2010"
+)
+# table(commune$INSEE_COM %in% ag10$Code) # only 7 missing
 
 # 3. Merge with commune -----------------------------
 m0 <- match(commune$INSEE_COM, ag$Code)
@@ -87,10 +111,22 @@ commune$AGRESTE_FARMDENSITY_per_ha_2020 <- ifelse(
   NA
 )
 
+m1 <- match(commune$INSEE_COM, ag10$Code)
+# table(is.na(m1)) # only 7 missing
+# table(duplicated(m1[!is.na(m1)])) # no duplicates
+
+# make sure it is numeric
+suppressWarnings({
+  ag10[, keepC10] <- apply(ag10[, keepC10], 2, as.numeric)
+})
+
+commune[, labC10] <- ag10[m1, keepC10]
+
 var <- c(
   labC,
   "AGRESTE_PRODUCTIVITY_kEUR_per_ha_2020",
-  "AGRESTE_FARMDENSITY_per_ha_2020"
+  "AGRESTE_FARMDENSITY_per_ha_2020",
+  labC10
 )
 
 for (i in var) {
@@ -141,7 +177,7 @@ for (i in scales) {
     numJ <- tapply(!is.na(cross[, j]), cross$cd_sig, sum, na.rm = TRUE)
 
     indj <- ifelse(numJ > 0, sumJ / area, NA)
-    mailles[, j] <- indj[m1]
+    mailles[, j] <- as.numeric(indj[m1])
 
     filej <- paste0(toupper(j), "_MAILLE", i, "km.png")
     png(

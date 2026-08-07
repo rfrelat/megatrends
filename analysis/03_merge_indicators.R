@@ -21,6 +21,8 @@ scales <- c("commune", "mailles_10km", "mailles_5km", "mailles_1km")
 meta <- readxl::read_xlsx(
   here::here("data", "derived-data", "megatrends_metadata.xlsx")
 )
+# save the last update in the app folder
+write.csv(meta, file.path(out_app, "megatrends_metadata.csv"))
 
 srch <- "^XX_.*csv$"
 # Same process for commune and maille
