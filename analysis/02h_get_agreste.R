@@ -58,14 +58,16 @@ keepC <- c(
   "Part.des.chefs.d.exploitation.et.coexploitants...40.ans..2020",
   "PBS.moyenne.en.2020",
   "Nombre.d.exploitations.en.2020",
-  "SAU.en.2020"
+  "SAU.en.2020",
+  "Part.de.la.superficie.irriguée.dans.la.SAU..2020"
 )
 
 labC <- c(
   "AGRESTE_Below40_PCT_2020",
   "AGRESTE_PBS_kEUR_2020",
   "AGRESTE_Nfarms_2020",
-  "AGRESTE_SAU_HA_2020"
+  "AGRESTE_SAU_HA_2020",
+  "AGRESTE_IRRIGATED_PERC_2020"
 )
 
 
