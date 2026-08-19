@@ -60,6 +60,8 @@ source(here::here("analysis", "02j_get_refea.R"))
 source(here::here("analysis", "02k_get_osm.R"))
 # Slope from Geomorph 90m
 source(here::here("analysis", "02l_get_geomorph.R"))
+# Population density from GHS-POP at 100m resolution
+source(here::here("analysis", "02m_get_ghspop.R"))
 #
 # to be completed ...
 
@@ -90,7 +92,7 @@ rsconnect::deployApp(
   appName = "Motiver_megatrends",
   appTitle = "Motiver Megatrends"
 )
-# 15Mb
+# 18Mb
 
 # 5. Test multivariate approach
 quarto::quarto_render("analysis/05_test_multivariate.qmd")

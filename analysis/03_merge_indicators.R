@@ -89,8 +89,8 @@ for (i in scales) {
   # need to be casted as POLYGON
 
   shp_sf <- sf::st_as_sf(shp)
-  shp_poly <- st_cast(shp_sf, "MULTIPOLYGON") |>
-    st_cast("POLYGON", do_split = TRUE, warn = FALSE)
+  shp_poly <- sf::st_cast(shp_sf, "MULTIPOLYGON") |>
+    sf::st_cast("POLYGON", do_split = TRUE, warn = FALSE)
 
   # other slower option
   # shp2 <- st_collection_extract(shp_sf, "POLYGON") |>
