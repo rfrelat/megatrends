@@ -69,6 +69,7 @@ for (i in scales) {
 
   #re-order indicators
   ind <- ind[, unique(c(names(shp), meta$Name))]
+  # apply(is.na(ind), 2, sum)
 
   # export as csv file
   outi <- paste0("Dataset_", i, ".csv")
@@ -86,7 +87,21 @@ for (i in scales) {
   #   overwrite = TRUE
   # )
   # need to be casted as POLYGON
-  shp_poly <- sf::st_cast(sf::st_as_sf(shp), "POLYGON", warn = FALSE)
+
+  shp_sf <- sf::st_as_sf(shp)
+  shp_poly <- st_cast(shp_sf, "MULTIPOLYGON") |>
+    st_cast("POLYGON", do_split = TRUE, warn = FALSE)
+
+  # other slower option
+  # shp2 <- st_collection_extract(shp_sf, "POLYGON") |>
+  #   st_cast("POLYGON", do_split = TRUE)
+
+  # check that we don't remove areas
+  # all.equal(
+  #   sum(terra::expanse(shp)),
+  #   sum(terra::expanse(terra::vect(shp_poly)))
+  # )
+
   sf::st_write(
     shp_poly,
     file.path(out_app, paste0(i, ".gpkg")),

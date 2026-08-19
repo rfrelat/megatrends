@@ -56,6 +56,10 @@ source(here::here("analysis", "02h_get_agreste.R"))
 source(here::here("analysis", "02i_get_croptation.R"))
 # Distance to training center
 source(here::here("analysis", "02j_get_refea.R"))
+# Linear density of roads and hiking trails from OSM
+source(here::here("analysis", "02k_get_osm.R"))
+# Slope from Geomorph 90m
+source(here::here("analysis", "02l_get_geomorph.R"))
 #
 # to be completed ...
 

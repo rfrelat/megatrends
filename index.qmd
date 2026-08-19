@@ -1,6 +1,9 @@
 # Overview {.unnumbered}
 
-Data exploration
+Shiny app: <https://rfrelat-cesab.shinyapps.io/Motiver_megatrends/>
+
+
+Data exploration:
 
 1. [Correlation among political stringency](https://rfrelat.github.io/megatrends/analysis/04_political_stringency.html)  
 2. [Multivariate analysis : regional vs national](https://rfrelat.github.io/megatrends/analysis/05_test_multivariate.html)
