@@ -67,7 +67,7 @@
     "href": "index.html",
     "title": "Overview",
     "section": "",
-    "text": "Overview\nData exploration\n\nCorrelation among political stringency\n\nMultivariate analysis : regional vs national\nMultivariate analysis from WS4 discussion 07/26"
+    "text": "Overview\nShiny app: https://rfrelat-cesab.shinyapps.io/Motiver_megatrends/\nData exploration:\n\nCorrelation among political stringency\n\nMultivariate analysis : regional vs national\nMultivariate analysis from WS4 discussion 07/26"
   },
   {
     "objectID": "analysis/05_test_multivariate.html#correlation",
