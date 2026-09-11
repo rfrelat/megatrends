@@ -56,18 +56,28 @@ ag <- read.table(
 # table(commune$INSEE_COM %in% ag$Code) # only 11 missing
 keepC <- c(
   "Part.des.chefs.d.exploitation.et.coexploitants...40.ans..2020",
+  "PBS.en.2020",
   "PBS.moyenne.en.2020",
   "Nombre.d.exploitations.en.2020",
   "SAU.en.2020",
-  "Part.de.la.superficie.irriguée.dans.la.SAU..2020"
+  "SAU.moyenne.en.2020",
+  "Part.de.la.superficie.irriguée.dans.la.SAU..2020",
+  "Nombre.d.UGB..2020",
+  "Nombre.moyen.d.UGB.par.exploitation..2020",
+  "ETP.hors.prestataires..2020"
 )
 
 labC <- c(
   "AGRESTE_Below40_PCT_2020",
   "AGRESTE_PBS_kEUR_2020",
+  "AGRESTE_PBS_PER_FARM_kEUR_2020",
   "AGRESTE_Nfarms_2020",
   "AGRESTE_SAU_HA_2020",
-  "AGRESTE_IRRIGATED_PERC_2020"
+  "AGRESTE_FARMSIZE_HA_2020",
+  "AGRESTE_IRRIGATED_PERC_2020",
+  "AGRESTE_LIVESTOCK_UGB_2020",
+  "AGRESTE_LIVESTOCK_PER_FARM_UGB_2020",
+  "AGRESTE_WORK_ETP_2020"
 )
 
 
@@ -84,15 +94,43 @@ ag10 <- read.csv(
   file.path(data_folder, "data_Agreste_Commune2010.csv")
 )
 keepC10 <- c(
-  "Chefs.d.exploitation.et.coexploitants.avec.formation.supérieure...part.en.2010",
-  "SAU.moyenne.par.UTA.2010"
+  "Chefs.d.exploitation.et.coexploitants.avec.formation.supérieure...part.en.2010"
 )
 
 labC10 <- c(
-  "AGRESTE_EDUSUP_PCT_2010",
-  "AGRESTE_FARMSIZE_HA_2010"
+  "AGRESTE_EDUSUP_PCT_2010"
 )
 # table(commune$INSEE_COM %in% ag10$Code) # only 7 missing
+
+ca10 <- read.csv2(
+  file.path(data_folder, "data_Agreste_Canton2010.csv")
+)
+
+# add canton information for 2010
+fr10 <- read.table(
+  file.path(data_folder, "insee_france2010.txt"),
+  sep = "\t",
+  quote = "",
+  fileEncoding = "latin1",
+  header = TRUE
+)
+fr10$CAN <- paste0(
+  fr10$DEP,
+  ifelse(fr10$CT < 10, paste0("0", fr10$CT), fr10$CT)
+)
+
+commune$CAN2010 <- fr10$CAN[match(commune$NOM_M, fr10$NCC)]
+# table(commune$CAN2010 %in% ca10$Code, commune$INSEE_CAN %in% ca10$Code)
+
+keepT10 <- c(
+  "Femmes.chefs.d.exploitation.ou.coexploitantes...part.en.2010",
+  "Exploitations.sans.successeur.connu...part.en.2010"
+)
+
+labT10 <- c(
+  "AGRESTE_FEMALEHEAD_PCT_2010",
+  "AGRESTE_NOSUCCESSOR_PCT_2010"
+)
 
 # 3. Merge with commune -----------------------------
 m0 <- match(commune$INSEE_COM, ag$Code)
@@ -100,6 +138,10 @@ m0 <- match(commune$INSEE_COM, ag$Code)
 # table(duplicated(m0[!is.na(m0)])) # no duplicates
 
 commune[, labC] <- ag[m0, keepC]
+
+# checked
+# AGRESTE_SAU_PER_FARM_HA_2020 = AGRESTE_SAU_HA_2020 / AGRESTE_Nfarms_2020
+# AGRESTE_PBS_kEUR_PER_FARM_2020 = AGRESTE_PBS_kEUR_2020 / AGRESTE_Nfarms_2020
 
 commune$AGRESTE_PRODUCTIVITY_kEUR_per_ha_2020 <- ifelse(
   commune$AGRESTE_SAU_HA_2020 > 0,
@@ -113,22 +155,45 @@ commune$AGRESTE_FARMDENSITY_per_ha_2020 <- ifelse(
   NA
 )
 
+commune$AGRESTE_LIVESTOCKDENSITY_UGB_per_ha_2020 <- ifelse(
+  commune$AGRESTE_SAU_HA_2020 > 0,
+  commune$AGRESTE_LIVESTOCK_UGB_2020 / commune$AGRESTE_SAU_HA_2020,
+  NA
+)
+
 m1 <- match(commune$INSEE_COM, ag10$Code)
 # table(is.na(m1)) # only 7 missing
 # table(duplicated(m1[!is.na(m1)])) # no duplicates
 
 # make sure it is numeric
 suppressWarnings({
-  ag10[, keepC10] <- apply(ag10[, keepC10], 2, as.numeric)
+  # ag10[, keepC10] <- apply(ag10[, keepC10], 2, as.numeric)
+  ag10[, keepC10] <- as.numeric(ag10[, keepC10])
 })
 
 commune[, labC10] <- ag10[m1, keepC10]
+
+
+m2 <- ifelse(
+  is.na(match(commune$CAN2010, ca10$Code)),
+  match(commune$INSEE_CAN, ca10$Code),
+  match(commune$CAN2010, ca10$Code)
+)
+
+suppressWarnings({
+  ca10[, keepT10] <- apply(ca10[, keepT10], 2, as.numeric)
+})
+
+commune[, labT10] <- ca10[m2, keepT10]
+
 
 var <- c(
   labC,
   "AGRESTE_PRODUCTIVITY_kEUR_per_ha_2020",
   "AGRESTE_FARMDENSITY_per_ha_2020",
-  labC10
+  "AGRESTE_LIVESTOCKDENSITY_UGB_per_ha_2020",
+  labC10,
+  labT10
 )
 
 for (i in var) {

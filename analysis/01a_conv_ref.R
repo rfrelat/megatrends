@@ -22,25 +22,26 @@ ref_folder <- here::here("data", "raw-data", "ref")
 out_folder <- here::here("data", "derived-data", "ref")
 
 # 2. Load and project commune ------------------------------------
-metropole <- st_bbox(
+metropole <- sf::st_bbox(
   c(xmin = -9.86, xmax = 10.38, ymin = 41.15, ymax = 51.56),
-  crs = st_crs(4326)
+  crs = sf::st_crs(4326)
 )
 # ADMINEXPRESS-COG.2024:commune (11 min download)
 # only has the INSEE code: not cool ...
 
 # "LIMITES_ADMINISTRATIVES_EXPRESS.LATEST:commune"
-commune <- get_wfs(
-  x = st_as_sfc(metropole),
+commune <- happign::get_wfs(
+  x = sf::st_as_sfc(metropole),
   layer = "LIMITES_ADMINISTRATIVES_EXPRESS.LATEST:commune"
 )
-commune <- vect(commune)
+commune <- terra::vect(commune)
 # 8 min download
 
 # select relevant column and rename them
 keepC <- c(
   "nom_officiel_en_majuscules" = "NOM_M",
   "code_insee" = "INSEE_COM",
+  "code_insee_du_canton" = "INSEE_CAN",
   "code_insee_du_departement" = "INSEE_DEP",
   "code_insee_de_la_region" = "INSEE_REG",
   "code_siren" = "SIREN_CODE",
