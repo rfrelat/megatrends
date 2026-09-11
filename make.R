@@ -62,6 +62,8 @@ source(here::here("analysis", "02k_get_osm.R"))
 source(here::here("analysis", "02l_get_geomorph.R"))
 # Population density from GHS-POP at 100m resolution
 source(here::here("analysis", "02m_get_ghspop.R"))
+# Hedgerows density
+source(here::here("analysis", "02n_get_bdhaie.R"))
 #
 # to be completed ...
 

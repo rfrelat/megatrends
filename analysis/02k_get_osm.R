@@ -40,12 +40,12 @@ road <- c("motorway", "trunk", "primary", "secondary", "tertiary", "unclassified
 hike <- c("footway", "bridleway", "steps", "path", "track")
 
 osm_road <- osm[osm$highway %in% road]
-osm_hike <- osm[osm$highway %in% hike]
+# osm_hike <- osm[osm$highway %in% hike]
 
 # compare with official compilation
 # https://www.data.gouv.fr/datasets/itineraires-de-randonnee-dans-openstreetmap
-# osm_hike_gvt <- vect(file.path(data_folder, "hiking_foot_routes_lineLine.shp"))
-# osm_hike_gvt <- project(osm_hike_gvt, "EPSG:4326")
+osm_hike_gvt <- vect(file.path(data_folder, "hiking_foot_routes_lineLine.shp"))
+osm_hike_gvt <- project(osm_hike_gvt, "EPSG:4326")
 # table(osm_hike_gvt$route)
 # osm_hike_gvt$name <- NULL
 # route = hiking
@@ -56,8 +56,8 @@ osm_hike <- osm[osm$highway %in% hike]
 # z <- crop(osm, ext(zoom))
 # z_hk2 <- crop(osm_hike_gvt, ext(zoom))
 # mapview::mapview(z_hk, color = "red") +
-#   mapview::mapview(z_hk2, color = "blue") +
-#   mapview::mapview(z_rd, color = "black")
+#   mapview::mapview(z_hk2, color = "blue")
+# mapview::mapview(z_rd, color = "black")
 # mapview::mapview(z, color = "black")
 
 # OSMDATA solution: too long
@@ -85,7 +85,7 @@ for (i in scales) {
   labi <- gsub("KM$", "km", toupper(gsub("_", "", i)))
 
   # hiking path
-  inti_hk <- intersect(osm_hike, shp)
+  inti_hk <- intersect(osm_hike_gvt, shp)
   inti_hk$length <- perim(inti_hk)
   hk_sumid <- tapply(inti_hk$length, inti_hk$id, sum, na.rm = TRUE)
   m_hk <- match(shp$id, names(hk_sumid))

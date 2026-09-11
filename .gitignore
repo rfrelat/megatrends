@@ -1,6 +1,9 @@
 # all data files (to be stored somewhere else)
 data/raw-data
-data/derived-data
+data/derived-data/clean_data
+data/derived-data/indicators_csv
+data/derived-data/paul
+data/derived-data/ref
 
 biblio/
 .~lock*
