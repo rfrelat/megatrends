@@ -52,8 +52,8 @@ hve <- hve[hve$Code.Postal < 97000, ]
 hve <- hve[!duplicated(hve), ]
 
 # clean names and postal code
-hve$name = clean_city_names(hve$Commune)
-hve$code = check_postalcode(hve$Code.Postal)
+hve$name <- clean_city_names(hve$Commune)
+hve$code <- check_postalcode(hve$Code.Postal)
 
 # simple match
 # m0 <- simple_match_cities(hve, ref)
@@ -131,7 +131,7 @@ for (i in scales) {
   cat(paste("Maille", i, "km \n"))
   # load the data
   mailles <- terra::vect(
-    file.path(ref_folder, paste0("mailles_", i, "km_4326.gpkg"))
+    file.path(ref_folder, paste0("mailles_", i, "km_2154.gpkg"))
   )
   cross <- readRDS(
     file.path(ref_folder, paste0("cross_mailles", i, "km_commune.rds"))

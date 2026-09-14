@@ -64,6 +64,10 @@ source(here::here("analysis", "02l_get_geomorph.R"))
 source(here::here("analysis", "02m_get_ghspop.R"))
 # Hedgerows density
 source(here::here("analysis", "02n_get_bdhaie.R"))
+# Lacal farm producers / agricultural tourism
+source(here::here("analysis", "02o_get_localfarms.R"))
+# AMAP locations
+source(here::here("analysis", "02p_get_amap.R"))
 #
 # to be completed ...
 
