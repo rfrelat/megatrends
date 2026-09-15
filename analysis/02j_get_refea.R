@@ -62,7 +62,7 @@ for (i in scales) {
   dist_ea <- apply(distance_matrix, 2, min)
 
   # boxplot(dist_ea ~ shp_ea)
-  shp$REFEA_DIST_KM_2025 <- ifelse(shp_ea, 0, round(dist_ea / 1000, 2))
+  shp$REFEA_DIST_KM_2025 <- ifelse(shp_ea, 0, round(dist_ea / 1000, 3))
 
   # shortest distance : faster in sf
   # whoshort <- sf::st_nearest_feature(shp_pt, refea_pt)

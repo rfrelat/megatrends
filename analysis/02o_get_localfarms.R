@@ -1,5 +1,4 @@
-# Script to get the number of local farms / AMAP
-# input:
+# Script to get the number of local farms
 #  raw-data/localfarms/freaietlocal.geojson
 #     from https://www.fraisetlocal.fr/carte
 #  raw-data/localfarms/bienvenue_a_la_ferme_data.json

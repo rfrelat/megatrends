@@ -66,7 +66,7 @@ for (i in scales) {
     fun = "mean"
   )
 
-  shp$SLOPE_PERC <- round(exti, 2)
+  shp$SLOPE_PERC <- round(exti, 3)
 
   fi <- paste0("SLOPE_PERC_", labi, ".png")
   png(

@@ -89,7 +89,8 @@ for (i in scales) {
     mailles$cd_sig %in% intM$cd_sig,
     intM$pa[match(mailles$cd_sig, intM$cd_sig)],
     0
-  )
+  ) |>
+    round(3)
 
   #fmt: skip
   mailles$PROT_AREA_PCT_2026 <- (mailles$PROT_AREA_HA_2026 / mailles$AREA_HA * 100) |> 
@@ -134,7 +135,8 @@ commune$PROT_AREA_HA_2026 <- ifelse(
   commune$INSEE_COM %in% intC$INSEE_COM,
   intC$pa[match(commune$INSEE_COM, intC$INSEE_COM)],
   0
-)
+) |>
+  round(3)
 
 # calculate the percentage of protected area
 # fmt:skip

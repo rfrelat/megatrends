@@ -29,8 +29,12 @@ srch <- "^XX_.*csv$"
 for (i in scales) {
   if (i == "commune") {
     shp <- terra::vect(file.path(ref_folder, "commune_simple0005_4326.gpkg"))
+    id <- shp$INSEE_COM
+    lab <- "INSEE_COM"
   } else {
     shp <- terra::vect(file.path(ref_folder, paste0(i, "_4326.gpkg")))
+    id <- shp$cd_sig
+    lab <- "cd_sig"
   }
 
   labi <- gsub("KM$", "km", toupper(gsub("_", "", i)))
@@ -42,6 +46,8 @@ for (i in scales) {
 
   # load all csv
   ind <- lapply(ifiles, read.csv)
+  ind <- lapply(ind, function(x) x[match(id, x[, lab]), ])
+  # lapply(ind, function(x) all(x$INSEE_COM == id))
   ind <- lapply(ind, rm_col, col = names(shp))
   ind <- do.call(cbind, ind)
   ind <- cbind(data.frame(shp), ind)
@@ -62,7 +68,7 @@ for (i in scales) {
 
   # percentage area of organic farming
   ind$GREENSUBS_kEUR_per_HA_2022 <- ifelse(
-    ind$CULTIVATED_AREA_HA > 0,
+    ind$CULTIVATED_AREA_HA > 0.1,
     ind$GREENSUBS_kEUR_2022 / ind$CULTIVATED_AREA_HA,
     NA
   )
@@ -87,6 +93,14 @@ for (i in scales) {
   #   overwrite = TRUE
   # )
   # need to be casted as POLYGON
+
+  # visual check
+  # plot(
+  #   shp,
+  #   y = "AMAP_DIST_KM_2026",
+  #   border = NA,
+  #   main = paste0("Distance to nearest AMAP (km) - 2026 - mailles_", i, "km")
+  # )
 
   shp_sf <- sf::st_as_sf(shp)
   shp_poly <- sf::st_cast(shp_sf, "MULTIPOLYGON") |>

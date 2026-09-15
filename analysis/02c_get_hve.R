@@ -145,7 +145,8 @@ for (i in scales) {
 
   m1 <- match(mailles$cd_sig, names(wsum))
   # plot(area[m1], mailles$AREA_HA)
-  mailles$HVE_N_2024 <- (wsum / area)[m1]
+  mailles$HVE_N_2024 <- (wsum / area)[m1] |>
+    round(3)
 
   png(
     file = file.path(fig_folder, paste0("HVE_N_2024_MAILLE", i, "km.png")),

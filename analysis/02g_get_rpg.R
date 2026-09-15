@@ -63,7 +63,8 @@ for (i in scales) {
     shp$id %in% names(sum_areaF),
     sum_areaF[match(shp$id, names(sum_areaF))],
     0
-  )
+  ) |>
+    round(3)
 
   shp$FALLOW_AREA_PCT_2023 <- (shp$FALLOW_AREA_HA_2023 / shp$AREA_HA * 100) |>
     round(2)
@@ -99,7 +100,8 @@ for (i in scales) {
     shp$id %in% names(sum_areaC),
     sum_areaC[match(shp$id, names(sum_areaC))],
     0
-  )
+  ) |>
+    round(3)
 
   # fmt: skip
   shp$CULTIVATED_AREA_PCT_2023 <- round(shp$CULTIVATED_AREA_HA_2023 / shp$AREA_HA * 100, 2)
@@ -162,7 +164,8 @@ for (i in scales) {
     shp$id %in% row.names(area_crop),
     shannon[match(shp$id, row.names(area_crop))],
     NA
-  )
+  ) |>
+    round(3)
 
   fi <- paste0("RPG_CROPDIV_SHANNON_2023_", labi, ".png")
   png(
@@ -188,14 +191,16 @@ for (i in scales) {
     shp$id %in% names(wsum),
     field_size[match(shp$id, names(wsum))],
     0
-  )
+  ) |>
+    round(3)
 
   med <- tapply(intC$SURF_PARC, intC$id, median, na.rm = TRUE)
   shp$FIELD_SIZE_MEDIAN_HA_2023 <- ifelse(
     shp$id %in% names(med),
     med[match(shp$id, names(med))],
     0
-  )
+  ) |>
+    round(3)
 
   # remove areas with no field
   shp$FIELD_SIZE_MEDIAN_HA_2023[shp$CULTIVATED_AREA_HA_2023 == 0] <- NA

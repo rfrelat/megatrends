@@ -70,7 +70,7 @@ for (i in scales) {
   # cor(shp$POPULATION, exti) : 0.997 high correlation with insee data
   # keep population estimate ?
   # shp$POP_N <- round(exti, 2)
-  shp$POPDENSITY_N_PER_KM2_2025 <- round(exti / shp$AREA_HA * 100, 2)
+  shp$POPDENSITY_N_PER_KM2_2025 <- round(exti / shp$AREA_HA * 100, 3)
 
   fi <- paste0("POPDENSITY_N_PER_KM2_2025_", labi, ".png")
   png(

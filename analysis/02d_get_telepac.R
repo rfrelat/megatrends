@@ -67,8 +67,8 @@ telepac <- telepac[!duplicated(telepac), ]
 telepac <- telepac[telepac$Montant > 0, ]
 
 # clean names and postal code
-telepac$name = clean_city_names(telepac$Commune)
-telepac$code = check_postalcode(telepac$CP)
+telepac$name <- clean_city_names(telepac$Commune)
+telepac$code <- check_postalcode(telepac$CP)
 
 telepac$incomplete_cp <- grepl("X", telepac$code)
 telepac$code <- gsub("X", "0", telepac$code)
@@ -80,7 +80,7 @@ telepac <- telepac[telepac$code < 97000, ]
 
 # simple match
 # set the incomplete code to NA
-telepac$code[telepac$incomplete_cp] = NA
+telepac$code[telepac$incomplete_cp] <- NA
 m0 <- simple_match_cities(telepac, ref)
 # table(is.na(m0)) # 63898 missing (17%)
 
@@ -133,7 +133,7 @@ m0 <- match(commune$INSEE_COM, names(NB_subs))
 commune$GREENSUBS_N_2022 <- as.numeric(NB_subs)[m0]
 commune$GREENSUBS_N_2022[is.na(commune$GREENSUBS_N_2022)] <- 0
 
-commune$GREENSUBS_kEUR_2022 <- as.numeric(TOT_subs)[m0]
+commune$GREENSUBS_kEUR_2022 <- round(as.numeric(TOT_subs)[m0], 3)
 commune$GREENSUBS_kEUR_2022[is.na(commune$GREENSUBS_kEUR_2022)] <- 0
 
 keepC <- c("GREENSUBS_N_2022", "GREENSUBS_kEUR_2022")
@@ -186,11 +186,11 @@ for (i in scales) {
   m1 <- match(mailles$cd_sig, names(area))
   # cross_nb <- t(cross) * commune$GREENSUBS_N_2022
   # sum_nb <- apply(cross_nb, 2, sum, na.rm = TRUE)
-  mailles$GREENSUBS_N_2022 <- (sumN / area)[m1]
+  mailles$GREENSUBS_N_2022 <- round((sumN / area)[m1], 3)
 
   # cross_tot <- t(cross) * commune$GREENSUBS_kEUR_2022
   # sum_tot <- apply(cross_tot, 2, sum, na.rm = TRUE)
-  mailles$GREENSUBS_kEUR_2022 <- (sumT / area)[m1]
+  mailles$GREENSUBS_kEUR_2022 <- round((sumT / area)[m1], 3)
 
   # boxplot(mailles$GREENSUBS_kEUR_2022)
   for (j in keepC) {

@@ -54,14 +54,22 @@ names(commune) <- keepC
 commune$AREA_HA <- expanse(commune) * 0.0001
 
 # export as gpkg file
-writeVector(commune, file.path(out_folder, "commune_4326.gpkg"))
+writeVector(
+  commune,
+  file.path(out_folder, "commune_4326.gpkg"),
+  overwrite = TRUE
+)
 
 # project to 2154 and export it
 com2154 <- project(commune, "EPSG:2154")
-writeVector(com2154, file.path(out_folder, "commune_2154.gpkg"))
+writeVector(
+  com2154,
+  file.path(out_folder, "commune_2154.gpkg"),
+  overwrite = TRUE
+)
 
 france <- aggregate(commune) |> simplifyGeom(tolerance = 0.001)
-writeVector(france, file.path(out_folder, "france_4326.gpkg"))
+writeVector(france, file.path(out_folder, "france_4326.gpkg"), overwrite = TRUE)
 
 # 3. Load, crop and project mailles_10km ------------------------
 # france <- vect(file.path(out_folder, "france_4326.gpkg"))
@@ -91,14 +99,26 @@ for (i in c(10, 5, 1)) {
 # commune <- vect(file.path(out_folder, "commune_4326.gpkg"))
 
 scom <- simplifyGeom(commune, tolerance = 0.001)
-writeVector(scom, file.path(out_folder, "commune_simple0001_4326.gpkg"))
+writeVector(
+  scom,
+  file.path(out_folder, "commune_simple0001_4326.gpkg"),
+  overwrite = TRUE
+)
 
 # 0.005 seems to be the best compromise size vs geometry
 scom <- simplifyGeom(commune, tolerance = 0.005)
-writeVector(scom, file.path(out_folder, "commune_simple0005_4326.gpkg"))
+writeVector(
+  scom,
+  file.path(out_folder, "commune_simple0005_4326.gpkg"),
+  overwrite = TRUE
+)
 
 scom <- simplifyGeom(commune, tolerance = 0.01)
-writeVector(scom, file.path(out_folder, "commune_simple001_4326.gpkg"))
+writeVector(
+  scom,
+  file.path(out_folder, "commune_simple001_4326.gpkg"),
+  overwrite = TRUE
+)
 
 # plot(scom, col = "blue", border = NA)
 # mapview::mapview(scom)

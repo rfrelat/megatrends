@@ -161,7 +161,7 @@ dist_amap <- apply(distance_matrix, 2, min)
 commune$AMAP_DIST_KM_2026 <- ifelse(
   commune$AMAP_2026 == 1,
   0,
-  round(dist_amap / 1000, 2)
+  round(dist_amap / 1000, 3)
 )
 
 png(
@@ -208,7 +208,7 @@ for (i in scales) {
   # get the nearest distance
   dist_amap <- apply(distance_matrix, 2, min)
 
-  shp$AMAP_DIST_KM_2026 <- ifelse(shp_ea, 0, round(dist_amap / 1000, 2))
+  shp$AMAP_DIST_KM_2026 <- ifelse(shp_ea, 0, round(dist_amap / 1000, 3))
 
   fi <- paste0("AMAP_DIST_KM_2026_", labi, ".png")
   png(

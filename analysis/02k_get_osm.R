@@ -96,7 +96,11 @@ for (i in scales) {
     round(hk_sumid[m_hk] / 1000, 3)
   )
 
-  shp$OSM_HIKING_M_PER_HA_2026 <- shp$OSM_HIKING_KM_2026 * 1000 / shp$AREA_HA
+  shp$OSM_HIKING_M_PER_HA_2026 <- ifelse(
+    shp$AREA_HA > 0.01,
+    round(shp$OSM_HIKING_KM_2026 * 1000 / shp$AREA_HA, 3),
+    NA
+  )
 
   # compare with OSM data provided by gouvernement
   # inti_hk2 <- intersect(osm_hike_gvt, shp)
@@ -130,7 +134,11 @@ for (i in scales) {
     round(rd_sumid[m_rd] / 1000, 3)
   )
 
-  shp$OSM_ROADS_M_PER_HA_2026 <- shp$OSM_ROADS_KM_2026 * 1000 / shp$AREA_HA
+  shp$OSM_ROADS_M_PER_HA_2026 <- ifelse(
+    shp$AREA_HA > 0.01,
+    round(shp$OSM_ROADS_KM_2026 * 1000 / shp$AREA_HA, 3),
+    NA
+  )
 
   var <- c(
     "OSM_HIKING_KM_2026",

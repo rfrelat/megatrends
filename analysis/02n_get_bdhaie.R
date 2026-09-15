@@ -55,8 +55,11 @@ for (i in scales) {
     round(he_sumid[m_he] / 1000, 3)
   )
 
-  #fmt:skip
-  shp$BDHAIE_HEDGEDENSITY_m_per_ha_2020 <- shp$BDHAIE_HEDGE_m_2020 * 1000 / shp$AREA_HA
+  shp$BDHAIE_HEDGEDENSITY_m_per_ha_2020 <- ifelse(
+    shp$AREA_HA > 0.01,
+    round(shp$BDHAIE_HEDGE_m_2020 * 1000 / shp$AREA_HA, 3),
+    NA
+  )
 
   var <- c(
     "BDHAIE_HEDGE_m_2020",

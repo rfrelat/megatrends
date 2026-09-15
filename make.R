@@ -68,6 +68,8 @@ source(here::here("analysis", "02n_get_bdhaie.R"))
 source(here::here("analysis", "02o_get_localfarms.R"))
 # AMAP locations
 source(here::here("analysis", "02p_get_amap.R"))
+# Bio professionals
+source(here::here("analysis", "02q_get_biopro.R"))
 #
 # to be completed ...
 
@@ -82,7 +84,7 @@ app_path <- here::here("app")
 shiny::runApp(app_path, display.mode = "normal")
 
 # and deploy it (if needed)
-# file_app <- rsconnect::listDeploymentFiles(app_path)
+file_app <- rsconnect::listDeploymentFiles(app_path)
 file_app <- c(
   "about.md",
   "data/commune.gpkg",
@@ -98,7 +100,7 @@ rsconnect::deployApp(
   appName = "Motiver_megatrends",
   appTitle = "Motiver Megatrends"
 )
-# 18Mb
+# 19Mb
 
 # 5. Test multivariate approach
 quarto::quarto_render("analysis/05_test_multivariate.qmd")

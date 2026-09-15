@@ -244,7 +244,7 @@ for (i in scales) {
     numJ <- tapply(!is.na(cross[, j]), cross$cd_sig, sum, na.rm = TRUE)
 
     indj <- ifelse(numJ > 0, sumJ / area, NA)
-    mailles[, j] <- as.numeric(indj[m1])
+    mailles[, j] <- round(as.numeric(indj[m1]), 3)
 
     filej <- paste0(toupper(j), "_MAILLE", i, "km.png")
     png(

@@ -45,7 +45,7 @@ exp <- exp[exp$year == 2022, ]
 # 3. Overlay and calculate statistics -----------------------------
 # the intersect() step takes a very long time to compute at the French scale
 
-## 3a. for mailles 10km
+## 3a. for mailles
 for (i in scales) {
   cat(paste("Maille", i, "km \n"))
   mailles <- terra::vect(
@@ -63,12 +63,12 @@ for (i in scales) {
   #fmt:skip
   out <- data.frame(
   "cd_sig" = names(npix),
-  "PESTICIDE_NPIXELS_2022" = as.numeric(npix),
-  "PESTICIDE_AIR_ng_per_m3_2022" = tapply(intM$mean_concentration_air*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
-  "PESTICIDE_WATER_ng_per_m3_2022" = tapply(intM$mean_concentration_water*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
-  "PESTICIDE_TII_2022" = tapply(intM$mean_tii*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma,
-  "PESTICIDE_EXPOSURE_2022" = tapply(intM$all_pesticide_exposure*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma
-)
+  # "PESTICIDE_NPIXELS_2022" = as.numeric(npix),
+  "PESTICIDE_AIR_ng_per_m3_2022" = round(tapply(intM$mean_concentration_air*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma, 3),
+  "PESTICIDE_WATER_ng_per_m3_2022" = round(tapply(intM$mean_concentration_water*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma, 3),
+  "PESTICIDE_TII_2022" = round(tapply(intM$mean_tii*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma, 3),
+  "PESTICIDE_EXPOSURE_2022" = round(tapply(intM$all_pesticide_exposure*intM$pa, intM$cd_sig, sum, na.rm = TRUE) / suma, 3)
+  )
 
   m0 <- match(mailles$cd_sig, out$cd_sig)
   keepC <- names(out)[!names(out) %in% names(mailles)]
@@ -117,10 +117,10 @@ suma <- tapply(intC$pa, intC$INSEE_COM, sum, na.rm = TRUE)
 out <- data.frame(
   "INSEE_COM" = names(npix),
   "PESTICIDE_NPIXELS_2022" = as.numeric(npix),
-  "PESTICIDE_AIR_ng_per_m3_2022" = tapply(intC$mean_concentration_air*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
-  "PESTICIDE_WATER_ng_per_m3_2022" = tapply(intC$mean_concentration_water*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
-  "PESTICIDE_TII_2022" = tapply(intC$mean_tii*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma,
-  "PESTICIDE_EXPOSURE_2022" = tapply(intC$all_pesticide_exposure*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma
+  "PESTICIDE_AIR_ng_per_m3_2022" = round(tapply(intC$mean_concentration_air*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma, 3),
+  "PESTICIDE_WATER_ng_per_m3_2022" = round(tapply(intC$mean_concentration_water*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma, 3),
+  "PESTICIDE_TII_2022" = round(tapply(intC$mean_tii*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma, 3),
+  "PESTICIDE_EXPOSURE_2022" = round(tapply(intC$all_pesticide_exposure*intC$pa, intC$INSEE_COM, sum, na.rm = TRUE) / suma, 3)
 )
 
 # match the rows

@@ -3,7 +3,7 @@
 # input:
 #   bio from Cartobio: https://www.data.gouv.fr/datasets/parcelles-certifiees-en-agriculture-biologique-sur-cartobio
 #   more complete than organic declared at CAP:
-#   https://www.data.gouv.fr/datasets/parcelles-en-agriculture-biologique-ab-declarees-a-la-pac
+#     https://www.data.gouv.fr/datasets/parcelles-en-agriculture-biologique-ab-declarees-a-la-pac
 #
 # output:
 #   indicators_csv/MAILLEXkm_BIO_2024.csv
@@ -78,7 +78,8 @@ for (i in scales) {
     mailles$cd_sig %in% names(sum_areaM),
     sum_areaM[match(mailles$cd_sig, names(sum_areaM))],
     0
-  )
+  ) |>
+    round(3)
 
   # check if errors (overlapping areas?)
   # table(mailles$BIO_AREA_HA_2024 > mailles$AREA_HA)
@@ -138,7 +139,8 @@ commune$BIO_AREA_HA_2024 <- ifelse(
   commune$INSEE_COM %in% names(sum_areaC),
   sum_areaC[match(commune$INSEE_COM, names(sum_areaC))],
   0
-)
+) |>
+  round(3)
 
 # check if errors (overlapping areas?)
 # table(commune$BIO_AREA_HA_2024 > commune$AREA_HA)

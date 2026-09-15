@@ -90,7 +90,7 @@ nprel <- table(nit_prel$insee_com)
 nit_com <- data.frame(
   "INSEE_COM" = names(nprel),
   "NO3_Nsamples_2025" = as.numeric(nprel),
-  "NO3_mg_per_l_2025" = tapply(nit_prel$mean_no3, nit_prel$insee_com, mean)
+  "NO3_mg_per_l_2025" = round(tapply(nit_prel$mean_no3, nit_prel$insee_com, mean), 3)
 )
 
 # 3. export --------------------------------------------------
@@ -152,8 +152,8 @@ for (i in scales) {
 
   m1 <- match(mailles$cd_sig, names(area))
 
-  mailles$NO3_Nsamples_2025 <- (sumN / area)[m1]
-  mailles$NO3_mg_per_l_2025 <- (sumMG / area)[m1]
+  mailles$NO3_Nsamples_2025 <- round((sumN / area)[m1], 3)
+  mailles$NO3_mg_per_l_2025 <- round((sumMG / area)[m1], 3)
   mailles$NO3_mg_per_l_2025[mailles$NO3_Nsamples_2025 == 0] <- NA
 
   # weighted average
