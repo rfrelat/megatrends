@@ -14,8 +14,6 @@
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
 library(terra)
-library(vegan)
-
 
 data_folder <- here::here("data", "raw-data", "localfarms")
 ref_folder <- here::here("data", "derived-data", "ref")

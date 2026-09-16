@@ -33,7 +33,7 @@ source(here::here("analysis", "01b_get_synonyms.R"))
 # to intersect commune and mailles
 source(here::here("analysis", "01c_cross_ref.R"))
 
-# 2. Get megatrends per data sources
+# # 2. Get megatrends per data sources
 # CARTOBIO: percentage of organic fields
 source(here::here("analysis", "02a_get_bio.R"))
 # WDPA: percentage of protected areas
@@ -53,7 +53,7 @@ source(here::here("analysis", "02g_get_rpg.R"))
 # Agreste 2020 + 2010: Recensement agricole
 source(here::here("analysis", "02h_get_agreste.R"))
 # Crop rotation
-source(here::here("analysis", "02i_get_croptation.R"))
+source(here::here("analysis", "02i_get_croprot.R"))
 # Distance to training center
 source(here::here("analysis", "02j_get_refea.R"))
 # Linear density of roads and hiking trails from OSM
@@ -70,6 +70,8 @@ source(here::here("analysis", "02o_get_localfarms.R"))
 source(here::here("analysis", "02p_get_amap.R"))
 # Bio professionals
 source(here::here("analysis", "02q_get_biopro.R"))
+# Machinery cooperative (CUMA)
+source(here::here("analysis", "02r_get_cuma.R"))
 #
 # to be completed ...
 

@@ -11,8 +11,6 @@
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
 library(terra)
-library(vegan)
-
 
 data_folder <- here::here("data", "raw-data", "masa")
 ref_folder <- here::here("data", "derived-data", "ref")
@@ -20,7 +18,6 @@ ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 scales <- c("commune", "mailles_10km", "mailles_5km", "mailles_1km")
-
 
 # 2. Load and clean RPG data ------------------------------------
 refea <- read.csv2(file.path(data_folder, "refea_2025-2026.csv"))
