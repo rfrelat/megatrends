@@ -25,33 +25,41 @@ function(input, output, session) {
     } else {
       ind <- unlist(data.frame(maille)[, input$var])
     }
-    if (input$color == "continuous") {
-      pal <- colorNumeric(
+    if (is.character(ind)) {
+      pal <- colorFactor(
         palette = "viridis",
         domain = ind,
         na.color = "transparent"
       )
     } else {
-      if (input$color == "quantiles") {
-        # colorQuantile() shows % instead of values in legend
-        bins <- quantile(ind, probs = seq(0, 1, 0.2), na.rm = TRUE)
+      if (input$color == "continuous") {
+        pal <- colorNumeric(
+          palette = "viridis",
+          domain = ind,
+          na.color = "transparent"
+        )
       } else {
-        # log scale
-        range_log <- range(log1p(ind), na.rm = TRUE)
-        bins <- expm1(seq(range_log[1], range_log[2], length.out = 9))
+        if (input$color == "quantiles") {
+          # colorQuantile() shows % instead of values in legend
+          bins <- quantile(ind, probs = seq(0, 1, 0.2), na.rm = TRUE)
+        } else {
+          # log scale
+          range_log <- range(log1p(ind), na.rm = TRUE)
+          bins <- expm1(seq(range_log[1], range_log[2], length.out = 9))
+        }
+        # simplify bins
+        bins <- unique(c(
+          floor(bins[1]),
+          round(bins[2:(length(bins) - 1)], 1),
+          ceiling(bins[length(bins)])
+        ))
+        pal <- colorBin(
+          "viridis",
+          domain = ind,
+          bins = bins,
+          na.color = "transparent"
+        )
       }
-      # simplify bins
-      bins <- unique(c(
-        floor(bins[1]),
-        round(bins[2:(length(bins) - 1)], 1),
-        ceiling(bins[length(bins)])
-      ))
-      pal <- colorBin(
-        "viridis",
-        domain = ind,
-        bins = bins,
-        na.color = "transparent"
-      )
     }
     return(pal)
   })
@@ -69,7 +77,7 @@ function(input, output, session) {
   observe({
     pal <- colpal()
     shp <- shape()
-    leafletProxy("mapvar", data = shp) |>
+    m <- leafletProxy("mapvar", data = shp) |>
       #clearShapes() |>
       removeGlPolygons(layerId = 'mapid') |>
       addGlPolygons(
@@ -79,14 +87,17 @@ function(input, output, session) {
         popup = shp[[input$var]],
         layerId = 'mapid'
       ) |>
-      clearControls() |>
-      # fmt:skip
-      addLegend(
-        position = "bottomright",
-        values = shp[[input$var]],
-        pal = pal,
-        title = input$var,
-        opacity = 1
-      )
+      clearControls()
+    if (!input$var %in% noleg) {
+      m <- m |>
+        addLegend(
+          position = "bottomright",
+          values = shp[[input$var]],
+          pal = pal,
+          title = input$var,
+          opacity = 1
+        )
+    }
+    return(m)
   })
 }

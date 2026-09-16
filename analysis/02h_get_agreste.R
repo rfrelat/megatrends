@@ -80,6 +80,25 @@ labC <- c(
   "AGRESTE_WORK_ETP_2020"
 )
 
+conv_spe <- c(
+  "1500" = "Céréales", #et/ou oléoprotéagineux
+  "1600" = "Autres cultures", #Autres grandes cultures
+  "3900" = "Fruits", #ou autres cultures permanentes
+  "2800" = "Légumes", #ou champignons
+  "2900" = "Fleurs", #et/ou horticulture diverse
+  "3500" = "Viticulture",
+  "4500" = "Bovins lait",
+  "4600" = "Bovins viande",
+  "4700" = "Bovins mixte",
+  "4840" = "Equidés", #et/ou autres herbivores
+  "4813" = "Ovins ou caprins",
+  "5100" = "Porcins",
+  "5374" = "Granivores", # Combinaisons de granivores (porcins,volailles)
+  "5200" = "Volailles",
+  "6184" = "Mixte", # Polyculture et/ou polyélevage
+  "9000" = NA, #Non classées
+  "0" = NA
+)
 
 # ag10 <- read.table(
 #   file.path(data_folder, "data_Agreste_Commune2010.csv"),
@@ -161,6 +180,11 @@ commune$AGRESTE_LIVESTOCKDENSITY_UGB_per_ha_2020 <- ifelse(
   NA
 )
 
+# add SPECIALISATION
+commune$AGRESTE_CLASS_2020 <- conv_spe[as.character(
+  ag$Spécialisation.de.la.production.agricole.en.2020..17.postes.[m0]
+)]
+
 m1 <- match(commune$INSEE_COM, ag10$Code)
 # table(is.na(m1)) # only 7 missing
 # table(duplicated(m1[!is.na(m1)])) # no duplicates
@@ -192,6 +216,7 @@ var <- c(
   "AGRESTE_PRODUCTIVITY_kEUR_per_ha_2020",
   "AGRESTE_FARMDENSITY_per_ha_2020",
   "AGRESTE_LIVESTOCKDENSITY_UGB_per_ha_2020",
+  "AGRESTE_CLASS_2020",
   labC10,
   labT10
 )
@@ -204,14 +229,23 @@ for (i in var) {
     height = 1000,
     res = 200
   )
-  plot(
-    commune,
-    y = i,
-    border = NA,
-    main = paste(i, "- Commune"),
-    breaks = 6,
-    breakby = "cases"
-  )
+  if (!is.character(data.frame(commune)[, i])) {
+    plot(
+      commune,
+      y = i,
+      border = NA,
+      main = paste(i, "- Commune"),
+      breaks = 6,
+      breakby = "cases"
+    )
+  } else {
+    plot(
+      commune,
+      y = i,
+      border = NA,
+      main = paste(i, "- Commune"),
+    )
+  }
   dev.off()
 }
 
@@ -240,11 +274,27 @@ for (i in scales) {
   for (j in var) {
     cross[, j] <- data.frame(commune)[m0, j]
 
-    sumJ <- tapply(cross[, j] * cross$AREA_HA, cross$cd_sig, sum, na.rm = TRUE)
-    numJ <- tapply(!is.na(cross[, j]), cross$cd_sig, sum, na.rm = TRUE)
+    if (!is.character(cross[, j])) {
+      sumJ <- tapply(
+        cross[, j] * cross$AREA_HA,
+        cross$cd_sig,
+        sum,
+        na.rm = TRUE
+      )
+      numJ <- tapply(!is.na(cross[, j]), cross$cd_sig, sum, na.rm = TRUE)
 
-    indj <- ifelse(numJ > 0, sumJ / area, NA)
-    mailles[, j] <- round(as.numeric(indj[m1]), 3)
+      indj <- ifelse(numJ > 0, sumJ / area, NA)
+      mailles[, j] <- round(as.numeric(indj[m1]), 3)
+    } else {
+      sumJ <- tapply(
+        cross$AREA_HA,
+        list(cross$cd_sig, cross[, j]),
+        sum,
+        na.rm = TRUE
+      )
+      majJ <- colnames(sumJ)[as.numeric(apply(sumJ, 1, which.max))]
+      mailles[, j] <- majJ[match(mailles$cd_sig, rownames(sumJ))]
+    }
 
     filej <- paste0(toupper(j), "_MAILLE", i, "km.png")
     png(
@@ -253,14 +303,23 @@ for (i in scales) {
       height = 1000,
       res = 200
     )
-    plot(
-      mailles,
-      y = j,
-      border = NA,
-      main = paste(j, "- Maille", i, "km"),
-      breaks = 6,
-      breakby = "cases"
-    )
+    if (!is.character(cross[, j])) {
+      plot(
+        mailles,
+        y = j,
+        border = NA,
+        main = paste(j, "- Maille", i, "km"),
+        breaks = 6,
+        breakby = "cases"
+      )
+    } else {
+      plot(
+        mailles,
+        y = j,
+        border = NA,
+        main = paste(j, "- Maille", i, "km"),
+      )
+    }
     dev.off()
   }
 

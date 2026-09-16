@@ -62,14 +62,14 @@ for (i in scales) {
 
   ind$BIO_AREA_PCT_2024 <- ifelse(
     maxarea > 0,
-    ind$BIO_AREA_HA_2024 / maxarea * 100,
+    round(ind$BIO_AREA_HA_2024 / maxarea * 100, 3),
     NA
   )
 
   # percentage area of organic farming
   ind$GREENSUBS_kEUR_per_HA_2022 <- ifelse(
     ind$CULTIVATED_AREA_HA > 0.1,
-    ind$GREENSUBS_kEUR_2022 / ind$CULTIVATED_AREA_HA,
+    round(ind$GREENSUBS_kEUR_2022 / ind$CULTIVATED_AREA_HA, 3),
     NA
   )
 

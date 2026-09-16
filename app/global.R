@@ -10,7 +10,7 @@ suppressPackageStartupMessages({
 })
 
 folder <- "data"
-# folder <- here::here("app", "data")
+folder <- here::here("app", "data")
 
 # load datasets
 spatial_scale <- c("commune", "maille")
@@ -41,4 +41,6 @@ commune <- sf::st_read(file.path(folder, "commune.gpkg"), quiet = TRUE)
 maille <- sf::st_read(file.path(folder, "mailles_10km.gpkg"), quiet = TRUE)
 
 var_choices <- names(maille)[names(maille) %in% meta$Name]
-var_choices <- var_choices[var_choices != "CROP_DOMINANT_2023"]
+# var_choices <- var_choices[var_choices != "CROP_DOMINANT_2023"]
+# qual <- c("CROP_DOMINANT_2023", "AGRESTE_CLASS_2020")
+noleg <- "CROP_DOMINANT_2023"
