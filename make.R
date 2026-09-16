@@ -72,6 +72,8 @@ source(here::here("analysis", "02p_get_amap.R"))
 source(here::here("analysis", "02q_get_biopro.R"))
 # Machinery cooperative (CUMA)
 source(here::here("analysis", "02r_get_cuma.R"))
+# Land fragmentation
+source(here::here("analysis", "02s_get_fragmentation.R"))
 #
 # to be completed ...
 

@@ -1,5 +1,5 @@
 # Script to get the number of local farms
-#  raw-data/localfarms/freaietlocal.geojson
+#  raw-data/localfarms/fraietlocal.geojson
 #     from https://www.fraisetlocal.fr/carte
 #  raw-data/localfarms/bienvenue_a_la_ferme_data.json
 #     from https://www.bienvenue-a-la-ferme.com/fr/recherche
@@ -25,7 +25,7 @@ scales <- c("commune", "mailles_10km", "mailles_5km", "mailles_1km")
 
 # 2. Load and clean local farm dataset ------------------------------------
 ## 2a. Frais et local
-frais <- vect(file.path(data_folder, "freaietlocal.geojson"))
+frais <- vect(file.path(data_folder, "fraietlocal.geojson"))
 # table(frais$categorie)
 # 8487 Point de vente, 9472 Producteurs
 

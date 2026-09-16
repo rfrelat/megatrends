@@ -57,7 +57,19 @@ for (i in scales) {
   shp$CUMA_DIST_KM_2026 <- ifelse(shp_cuma, 0, round(dist_cuma / 1000, 3))
 
   # missing Corsica
-  shp$CUMA_DIST_KM_2026[shp$INSEE_REG == "94"] <- NA
+  if (i == "commune") {
+    shp$CUMA_DIST_KM_2026[shp$INSEE_REG == "94"] <- NA
+  } else {
+    # get longitude in L93
+    lon <- as.numeric(substr(
+      shp$cd_sig,
+      regexpr("E", shp$cd_sig) + 1,
+      regexpr("N", shp$cd_sig) - 1
+    ))
+    # threshold to identify Corsica
+    th <- ifelse(i == "mailles_10km", 110, 1100)
+    shp$CUMA_DIST_KM_2026[lon > th] <- NA
+  }
 
   fi <- paste0("CUMA_DIST_KM_2026_", labi, ".png")
   png(

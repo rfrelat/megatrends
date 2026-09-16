@@ -68,8 +68,18 @@ writeVector(
   overwrite = TRUE
 )
 
+# project to 3035 (ETRS89-extended / LAEA Europe) and export it
+com3035 <- project(commune, "EPSG:3035")
+writeVector(
+  com3035,
+  file.path(out_folder, "commune_3035.gpkg"),
+  overwrite = TRUE
+)
+
 france <- aggregate(commune) |> simplifyGeom(tolerance = 0.001)
 writeVector(france, file.path(out_folder, "france_4326.gpkg"), overwrite = TRUE)
+
+# france <- terra::vect(file.path(out_folder, "france_4326.gpkg"))
 
 # 3. Load, crop and project mailles_10km ------------------------
 # france <- vect(file.path(out_folder, "france_4326.gpkg"))
@@ -91,6 +101,13 @@ for (i in c(10, 5, 1)) {
   writeVector(
     maille_2154,
     file.path(out_folder, paste0("mailles_", i, "km_2154.gpkg")),
+    overwrite = TRUE
+  )
+
+  maille_3035 <- project(maille_fr, "EPSG:3035")
+  writeVector(
+    maille_3035,
+    file.path(out_folder, paste0("mailles_", i, "km_3035.gpkg")),
     overwrite = TRUE
   )
 }
