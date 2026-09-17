@@ -125,6 +125,7 @@ for (i in scales) {
       y = j,
       border = NA,
       breaks = 6,
+      breakby = "cases",
       main = paste(j, "-", i)
     )
     dev.off()

@@ -104,7 +104,7 @@ rsconnect::deployApp(
   appName = "Motiver_megatrends",
   appTitle = "Motiver Megatrends"
 )
-# 19Mb
+# 17Mb (rounding numbers decreased size by 2Mb)
 
 # 5. Test multivariate approach
 quarto::quarto_render("analysis/05_test_multivariate.qmd")
