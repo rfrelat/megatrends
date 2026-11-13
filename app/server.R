@@ -77,16 +77,19 @@ function(input, output, session) {
   observe({
     pal <- colpal()
     shp <- shape()
+    # with recent update, leafgl don't support overlapping transparent polygons
+    # so safer to remove polygons with NA.
+    shpv <- shp[!is.na(shp[[input$var]]), ]
     m <- leafletProxy("mapvar", data = shp) |>
       # clearShapes() |>
       # removeGlPolygons(layerId = 'mapid') |>
       clearGroup("mapid") |>
       addGlPolygons(
-        data = shp,
-        fillColor = pal(shp[[input$var]]),
+        data = shpv,
+        fillColor = pal(shpv[[input$var]]),
         fillOpacity = 0.7,
-        color = pal(shp[[input$var]]),
-        popup = shp[[input$var]],
+        color = pal(shpv[[input$var]]),
+        popup = shpv[[input$var]],
         layerId = 'mapid'
       ) |>
       clearControls()

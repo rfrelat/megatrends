@@ -100,7 +100,6 @@ app_path <- here::here("app")
 shiny::runApp(app_path, display.mode = "normal")
 
 # and deploy it (if needed)
-file_app <- rsconnect::listDeploymentFiles(app_path)
 file_app <- c(
   "about.md",
   "data/commune.gpkg",

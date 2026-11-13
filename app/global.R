@@ -10,7 +10,7 @@ suppressPackageStartupMessages({
 })
 
 folder <- "data"
-# folder <- here::here("app", "data")
+# folder <- here::here("app", "data") #in use for miniapp.R
 
 # load datasets
 spatial_scale <- c("commune", "maille")

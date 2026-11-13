@@ -2,7 +2,7 @@ source("app/global.R")
 
 input <- list(
   spatial = spatial_scale[1],
-  var = var_choices[4],
+  var = var_choices[83],
   color = color_scale[3]
 )
 
@@ -62,15 +62,17 @@ if (is.character(ind)) {
 #   na.color = "transparent"
 # )
 
+shpv <- shp[!is.na(shp[[input$var]]), ]
+
 leaflet(shp, options = leafletOptions(minZoom = Zmin, maxZoom = Zmax)) |>
   addTiles() |>
   setView(lng = Xstart, lat = Ystart, zoom = Zstart) |>
   addGlPolygons(
-    data = shp,
-    fillColor = colpal(shp[[input$var]]),
+    data = shpv,
+    fillColor = colpal(shpv[[input$var]]),
     fillOpacity = 0.7,
-    color = colpal(shp[[input$var]]),
-    popup = shp[[input$var]],
+    color = colpal(shpv[[input$var]]),
+    popup = shpv[[input$var]],
     layerId = 'mapid'
   ) |>
   clearControls() |>
