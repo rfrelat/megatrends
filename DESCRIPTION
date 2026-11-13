@@ -1,7 +1,7 @@
 Package: megatrend
 Type: Package
 Title: Research compendium for extracting megatrends maps in France 
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
     person(given   = "Romain",
            family  = "Frelat",
@@ -12,19 +12,38 @@ Description: Map and extract key megatrend parameters
     at the level of municipalities and a regular 10km grid.
 URL: https://github.com/rfrelat/megatrend
 BugReports: https://github.com/rfrelat/megatrend/issues
-License: GPL (>= 2)
+License: GPL (>= 2) + file LICENSE.md
 Encoding: UTF-8
 LazyData: true
 LazyDataCompression: xz
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
-    data.table,
-    here,
-    terra,
+    corrplot,
+    devtools,
+    DT,
+    exactextractr,
+    graphics,
+    knitr,
+    quarto,
+    readxl,
+    rmarkdown,
+    rsconnect,
+    stats,
     stringdist,
-    utils,
-    vegan
+    Ternary
 Depends: 
-    R (>= 3.5.0)
-
+    R (>= 3.5.0),
+    ade4,
+    data.table,
+    happign,
+    here,
+    htmltools,
+    leafgl,
+    leaflet,
+    markdown,
+    sf,
+    shiny,
+    shinycssloaders,
+    terra,
+    vegan
