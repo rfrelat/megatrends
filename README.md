@@ -38,13 +38,8 @@ The file `make.R` can be run to recompute all indicators. As the analysis is car
 
 ## Overview
 
-You can have an overview of the calculated indicators:  
+You can have an overview of the calculated indicators through a Shiny App: <https://rapps-megatrends.share.connect.posit.cloud/>  
 
-- through a Shiny App: <https://rfrelat-cesab.shinyapps.io/Motiver_megatrends/>  
-- with a focus on political stringency indicators: <https://rfrelat.github.io/megatrends/>
-
-<!-- 
 ```r
-shiny::runApp("/home/rfrelat/Documents/megatrends/app")
+shiny::runApp(here::here("app"))
 ``` 
--->

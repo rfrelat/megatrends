@@ -63,8 +63,9 @@ source(here::here("analysis", "02l_get_geomorph.R"))
 # Population density from GHS-POP at 100m resolution
 source(here::here("analysis", "02m_get_ghspop.R"))
 # Hedgerows density
-source(here::here("analysis", "02n_get_bdhaie.R"))
-# Lacal farm producers / agricultural tourism
+source(here::here("analysis", "02n_get_liu23.R"))
+# source(here::here("analysis", "02n_get_bdhaie.R"))
+# Local farm producers / agricultural tourism
 source(here::here("analysis", "02o_get_localfarms.R"))
 # AMAP locations
 source(here::here("analysis", "02p_get_amap.R"))
@@ -74,7 +75,18 @@ source(here::here("analysis", "02q_get_biopro.R"))
 source(here::here("analysis", "02r_get_cuma.R"))
 # Land fragmentation
 source(here::here("analysis", "02s_get_fragmentation.R"))
-#
+# N and P concentrations
+source(here::here("analysis", "02t_get_NP.R"))
+# ESDAC soil erosion and crop cover
+source(here::here("analysis", "02u_get_esdac.R"))
+# Copernicus mowing frequency
+source(here::here("analysis", "02v_get_copernicus.R"))
+# Chelsa climate data
+source(here::here("analysis", "02w_get_chelsa.R"))
+# Flood risk area (Territoires à Risque Important d'Inondation)
+source(here::here("analysis", "02x_get_floods.R"))
+# Forest management
+source(here::here("analysis", "02y_get_forest.R"))
 # to be completed ...
 
 # 3. Merge everything
@@ -104,7 +116,7 @@ rsconnect::deployApp(
   appName = "Motiver_megatrends",
   appTitle = "Motiver Megatrends"
 )
-# 17Mb (rounding numbers decreased size by 2Mb)
+# 20Mb (rounding numbers decreased size by 2Mb)
 
 # 5. Test multivariate approach
 quarto::quarto_render("analysis/05_test_multivariate.qmd")

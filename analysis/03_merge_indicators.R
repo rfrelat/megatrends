@@ -74,6 +74,7 @@ for (i in scales) {
   )
 
   #re-order indicators
+  # meta$Name[!meta$Name %in% names(ind)]
   ind <- ind[, unique(c(names(shp), meta$Name))]
   # apply(is.na(ind), 2, sum)
 
@@ -87,42 +88,27 @@ for (i in scales) {
 
   # export as geopackage for shinyapp
   shp <- cbind(shp, ind[, !names(ind) %in% names(shp)])
-  # terra::writeVector(
-  #   shp,
-  #   file.path(out_app, paste0(i, ".gpkg")),
-  #   overwrite = TRUE
-  # )
-  # need to be casted as POLYGON
 
-  # visual check
-  # plot(
-  #   shp,
-  #   y = "AMAP_DIST_KM_2026",
-  #   border = NA,
-  #   main = paste0("Distance to nearest AMAP (km) - 2026 - mailles_", i, "km")
-  # )
+  if (i %in% c("commune", "mailles_10km")) {
+    # need to be casted as POLYGON
+    shp_sf <- sf::st_as_sf(shp)
+    shp_poly <- sf::st_cast(shp_sf, "MULTIPOLYGON") |>
+      sf::st_cast("POLYGON", do_split = TRUE, warn = FALSE)
 
-  shp_sf <- sf::st_as_sf(shp)
-  shp_poly <- sf::st_cast(shp_sf, "MULTIPOLYGON") |>
-    sf::st_cast("POLYGON", do_split = TRUE, warn = FALSE)
+    # other slower option
+    # shp2 <- st_collection_extract(shp_sf, "POLYGON") |>
+    #   st_cast("POLYGON", do_split = TRUE)
 
-  # other slower option
-  # shp2 <- st_collection_extract(shp_sf, "POLYGON") |>
-  #   st_cast("POLYGON", do_split = TRUE)
+    # check that we don't remove areas
+    # all.equal(
+    #   sum(terra::expanse(shp)),
+    #   sum(terra::expanse(terra::vect(shp_poly)))
+    # )
 
-  # check that we don't remove areas
-  # all.equal(
-  #   sum(terra::expanse(shp)),
-  #   sum(terra::expanse(terra::vect(shp_poly)))
-  # )
-
-  sf::st_write(
-    shp_poly,
-    file.path(out_app, paste0(i, ".gpkg")),
-    append = FALSE
-  )
+    sf::st_write(
+      shp_poly,
+      file.path(out_app, paste0(i, ".gpkg")),
+      append = FALSE
+    )
+  }
 }
-
-# export as csv file
-# outi <- read.csv(file.path(ind_folder, "Dataset_commune.csv"))
-# apply(!is.na(outi), 2, sum) / nrow(outi) * 100

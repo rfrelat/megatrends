@@ -78,12 +78,14 @@ function(input, output, session) {
     pal <- colpal()
     shp <- shape()
     m <- leafletProxy("mapvar", data = shp) |>
-      #clearShapes() |>
-      removeGlPolygons(layerId = 'mapid') |>
+      # clearShapes() |>
+      # removeGlPolygons(layerId = 'mapid') |>
+      clearGroup("mapid") |>
       addGlPolygons(
         data = shp,
         fillColor = pal(shp[[input$var]]),
         fillOpacity = 0.7,
+        color = pal(shp[[input$var]]),
         popup = shp[[input$var]],
         layerId = 'mapid'
       ) |>

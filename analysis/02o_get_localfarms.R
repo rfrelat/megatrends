@@ -5,11 +5,13 @@
 #     from https://www.bienvenue-a-la-ferme.com/fr/recherche
 #  raw-data/localfarms/datatourisme-place.csv
 #     from https://www.data.gouv.fr/datasets/datatourisme-la-base-nationale-des-donnees-publiques-dinformation-touristique-en-open-data
+#  raw-data/localfarms/accueil_paysan.csv
+#     from https://accueil-paysan.com/fr/hebergements/
 # output:
-#   indicators_csv/MAILLEXkm_REFEA_2023.csv
-#   indicators_csv/COMMUNE_REFEA_2023.csv
-#   figure/REFEA_DIST_2023_MAILLEXkm.png
-#   figure/REFEA_DIST_2023_COMMUNE.png
+#   indicators_csv/MAILLEXkm_LOCAL_2026.csv
+#   indicators_csv/COMMUNE_LOCAL_2026.csv
+#   figure/FRAISLOCAL_XX_2026_MAILLEXkm.png
+#   figure/FRAISLOCAL_XX_2026_COMMUNE.png
 
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
@@ -25,12 +27,13 @@ scales <- c("commune", "mailles_10km", "mailles_5km", "mailles_1km")
 
 # 2. Load and clean local farm dataset ------------------------------------
 ## 2a. Frais et local
-frais <- vect(file.path(data_folder, "fraietlocal.geojson"))
+frais <- svc(file.path(data_folder, "fraietlocal.geojson"))[[2]]
 # table(frais$categorie)
 # 8487 Point de vente, 9472 Producteurs
 
 # table(frais$nom_de_la_plateforme)
 # 9255 Bienvenue à la ferme
+vente <- frais[frais$categorie == "Point de vente"]
 
 ## 2b. Bienvenue à la ferme : too complicated
 # baf <- jsonlite::read_json(
@@ -40,30 +43,40 @@ frais <- vect(file.path(data_folder, "fraietlocal.geojson"))
 #   )
 # )
 
-## 2c. DataTourisme
-place <- read.csv(file.path(data_folder, "datatourisme-place.csv"))
-# identify key labels
-# n <- table(place$Classements_du_POI)
-# n[order(n, decreasing = TRUE)[1:50]]
-label <- c(
-  "Agriculture Biologique", # 1730
-  "Bienvenue à la ferme", # 2060
-  "Vignobles & Découvertes", # 5739
-  "Accueil Paysan" # 395
-)
-labs <- sapply(label, function(x) grepl(x, place$Classements_du_POI))
-keep <- rowSums(labs) > 0
-df <- cbind(
-  place[keep, c("Nom_du_POI", "Longitude", "Latitude")],
-  labs[keep, ]
-)
-#dim(df) # 9253
-pt <- vect(
-  df,
-  geom = c("Longitude", "Latitude"),
+## 2c. Accueil paysan
+accueil <- read.csv(file.path(data_folder, "accueil_paysan.csv"))
+# remove duplicates
+accueil <- accueil[!duplicated(accueil), ]
+pt_acc <- vect(
+  accueil,
+  geom = c("longitude", "latitude"),
   crs = "EPSG:4326"
 )
 
+## 2d. DataTourisme
+# uncomplete - missing departments
+# place <- read.csv(file.path(data_folder, "datatourisme-place.csv"))
+# identify key labels
+# n <- table(place$Classements_du_POI)
+# n[order(n, decreasing = TRUE)[1:50]]
+# label <- c(
+#   "Agriculture Biologique", # 1730
+#   "Bienvenue à la ferme", # 2060
+#   "Vignobles & Découvertes", # 5739
+#   "Accueil Paysan" # 395
+# )
+# labs <- sapply(label, function(x) grepl(x, place$Classements_du_POI))
+# keep <- rowSums(labs) > 0
+# df <- cbind(
+#   place[keep, c("Nom_du_POI", "Longitude", "Latitude")],
+#   labs[keep, ]
+# )
+# #dim(df) # 9253
+# pt <- vect(
+#   df,
+#   geom = c("Longitude", "Latitude"),
+#   crs = "EPSG:4326"
+# )
 
 # 3. Overlay and calculate statistics -----------------------------
 # Same process for commune and maille
@@ -83,33 +96,45 @@ for (i in scales) {
   sph_fl <- extract(shp, frais)
 
   nfl <- table(sph_fl$id)
-  shp$FRAISLOCAL_N_2025 <- ifelse(shp$id %in% names(nfl), nfl[shp$id], 0)
+  shp$FRAISLOCAL_N_2026 <- ifelse(shp$id %in% names(nfl), nfl[shp$id], 0)
   # SELLS
   nsell <- table(sph_fl$id[frais$categorie == "Point de vente"])
-  shp$FRAISLOCAL_SHOPS_N_2025 <- ifelse(
+  shp$FRAISLOCAL_SHOPS_N_2026 <- ifelse(
     shp$id %in% names(nsell),
     nsell[shp$id],
     0
   )
   # PRODUCTION
   nprod <- table(sph_fl$id[frais$categorie == "Producteur"])
-  shp$FRAISLOCAL_PROD_N_2025 <- ifelse(
+  shp$FRAISLOCAL_PROD_N_2026 <- ifelse(
     shp$id %in% names(nprod),
     nprod[shp$id],
     0
   )
 
-  # Tourisme
-  sph_pt <- extract(shp, pt)
+  # Ag. Tourisme
+  sph_pt <- extract(shp, pt_acc)
 
   npt <- table(sph_pt$id)
-  shp$AGTOURISM_N_2025 <- ifelse(shp$id %in% names(npt), npt[shp$id], 0)
+  shp$AGTOURISM_N_2026 <- ifelse(shp$id %in% names(npt), npt[shp$id], 0)
+
+  # distance to closest Accueil paysan
+  pt_shp <- centroids(shp)
+
+  # takes a long time with terra
+  distance_matrix <- distance(pt_acc, pt_shp)
+  # get the nearest distance
+  dist_amap <- apply(distance_matrix, 2, min)
+
+  # boxplot(dist_ea ~ shp_ea)
+  shp$AGTOURISM_DIST_KM_2026 <- round(dist_amap / 1000, 3)
 
   var <- c(
-    "FRAISLOCAL_N_2025",
-    "FRAISLOCAL_SHOPS_N_2025",
-    "FRAISLOCAL_PROD_N_2025",
-    "AGTOURISM_N_2025"
+    "FRAISLOCAL_N_2026",
+    "FRAISLOCAL_SHOPS_N_2026",
+    "FRAISLOCAL_PROD_N_2026",
+    "AGTOURISM_N_2026",
+    "AGTOURISM_DIST_KM_2026"
   )
 
   for (j in var) {
@@ -125,13 +150,12 @@ for (i in scales) {
       y = j,
       border = NA,
       breaks = 6,
-      breakby = "cases",
       main = paste(j, "-", i)
     )
     dev.off()
   }
   # export
-  out_fi <- paste0(gsub("S", "", labi), "_LOCAL_2025.csv")
+  out_fi <- paste0(gsub("S", "", labi), "_LOCAL_2026.csv")
 
   write.csv(
     data.frame(shp)[, names(shp) != "id"],

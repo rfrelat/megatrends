@@ -2,7 +2,7 @@ source("app/global.R")
 
 input <- list(
   spatial = spatial_scale[1],
-  var = qual[1], #var_choices[4],
+  var = var_choices[4],
   color = color_scale[3]
 )
 
@@ -69,6 +69,7 @@ leaflet(shp, options = leafletOptions(minZoom = Zmin, maxZoom = Zmax)) |>
     data = shp,
     fillColor = colpal(shp[[input$var]]),
     fillOpacity = 0.7,
+    color = colpal(shp[[input$var]]),
     popup = shp[[input$var]],
     layerId = 'mapid'
   ) |>
