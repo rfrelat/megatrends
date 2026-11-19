@@ -52,6 +52,9 @@ for (i in scales) {
   ind <- do.call(cbind, ind)
   ind <- cbind(data.frame(shp), ind)
 
+  # quick patch for Chelsa data (might not be needed at the end)
+  names(ind) <- gsub("\\.", "_", names(ind))
+
   # calculate new indicators when needed
   # percentage area of organic farming
   maxarea <- ifelse(
@@ -73,8 +76,13 @@ for (i in scales) {
     NA
   )
 
+  # merge fraisetlocal.fr and amap
+  ind$LOCALSHOPS_DIST_KM_2026 <-
+    min(ind$AMAP_DIST_KM_2026, ind$FRAISLOCAL_SHOPS_DIST_KM_2026)
+
   #re-order indicators
   # meta$Name[!meta$Name %in% names(ind)]
+
   ind <- ind[, unique(c(names(shp), meta$Name))]
   # apply(is.na(ind), 2, sum)
 

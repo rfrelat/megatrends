@@ -1,104 +1,89 @@
-# Script to get indicators from the Georisques database
-#   Territoires à Risque Important d'Inondation (TRI)
-#
+# Script to get the Grassland Mowing Events from Copernicus
+#   River flood hazard maps for Europe and the Mediterranean Basin region
+#   https://data.jrc.ec.europa.eu/dataset/1d128b6c-a4ee-4858-9e34-6210707f3c81
+#   https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/CEMS-EFAS/flood_hazard/
+
+#   Other possible candidate:
+#   - Satellite-derived flood depth maps for Europe
+#   https://data.jrc.ec.europa.eu/dataset/0bc96690-b89c-4909-9166-c2c322a20130
+#   - ECFAS Pan-EU Flood Catalogue
+#   https://nhess.copernicus.org/articles/23/3585/2023/
+#   https://zenodo.org/records/7488978
 # input:
-#   tri_2020/
-#     from https://www.georisques.gouv.fr/donnees/bases-de-donnees/zonages-inondation-rapportage-2020
-#
+#   copernicus/CLMS_HRLVLCC_GRAME_FR_2020.tif # 10m resolution
 # output:
-#   indicators_csv/MAILLEXkm_WDPA_2026.csv
-#   indicators_csv/COMMUNE_WDPA_2026.csv
-#   figure/PROT_AREA_PCT_2026_MAILLEXkm.png
-#   figure/PROT_AREA_PCT_2026_COMMUNE.png
-#
-# WARNING: super long to compute statistics for 1km maille
-#
+#   indicators_csv/MAILLEXkm_COPERNICUS_2020.csv
+#   indicators_csv/COMMUNE_COPERNICUS_2020.csv
+#   figure/MOWING_EVENTS_MAILLEXkm.png
+#   figure/MOWING_EVENTS_COMMUNE.png
+
 # 1. Load and set parameters -------------------------------------
 devtools::load_all()
-library(terra) #for fast processing of large files
+library(terra)
 
 ref_folder <- here::here("data", "derived-data", "ref")
-data_folder <- here::here("data", "raw-data", "tri_2020")
-out_folder <- here::here("data", "derived-data", "clean_data")
+data_folder <- here::here("data", "raw-data", "copernicus")
 ind_folder <- here::here("data", "derived-data", "indicators_csv")
 fig_folder <- here::here("figure")
 
 scales <- c("commune", "mailles_10km", "mailles_5km", "mailles_1km")
 
-# 2. Load and clean WDPA data ------------------------------------
-# Flood extent map
-fext <- vect("data/raw-data/tri_2020/n_carte_inond_s.shp")
-# 3668 shapes
-# table(fext$typ_inond1)
-#   01 (River flooding): 2511
-#   02 (Marine flooding): 75
-#   03 (Combination): 1051
-# table(fext$scenario)
-#   01For (frequent scenario): 983,
-#   02Moy (medium scenario): 999,
-#   03Mcc (medium + climate change): 232
-#   04Fai (low probability): 996
+# 2. Load fragmentation data ------------------------------------
+filemos <- file.path(data_folder, "CLMS_HRLVLCC_GRAME_FR_2020.tif")
+if (!file.exists(filemos)) {
+  # combine tiles if not done already
+  tiles <- list.files(data_folder, "tif$", full.names = TRUE)
+  rlist <- lapply(tiles, rast)
+  mos <- mosaic(sprc(rlist))
 
-# Flood risk map
-frisk <- vect("data/raw-data/tri_2020/n_carte_risq_s.shp")
-# remove the id column (to avoid duplicated name with shp)
-frisk <- frisk[, names(frisk) != "id"]
-# 1163 shapes
-# but many are overlaid
-# sum(expanse(frisk) * 0.0001) # 8776466 ha !
+  # # plot(mos)
+  # # france <- vect(file.path(ref_folder, "france_4326.gpkg"))
+  # # plot(france, add = TRUE)
 
-frisk_agg <- aggregate(frisk)
-# sum(expanse(frisk_agg) * 0.0001) # 5661990 ha !
+  writeRaster(mos, filemos)
+}
+
+# Grassland Mowing Events
+grass <- rast(filemos)
+NAflag(grass) <- 253
 
 # 3. Overlay and calculate statistics -----------------------------
-# the intersect() step takes a very long time to compute at the French scale
-
 for (i in scales) {
   print(i)
   if (i == "commune") {
-    shp <- vect(file.path(ref_folder, "commune_4326.gpkg"))
+    shp <- vect(file.path(ref_folder, "commune_3035.gpkg"))
     shp$id <- shp$INSEE_COM
   } else {
-    shp <- vect(file.path(ref_folder, paste0(i, "_4326.gpkg")))
+    shp <- vect(file.path(ref_folder, paste0(i, "_3035.gpkg")))
     shp$id <- shp$cd_sig
   }
+
   labi <- gsub("KM$", "km", toupper(gsub("_", "", i)))
 
-  int <- intersect(frisk_agg, shp)
+  grassi <- exactextractr::exact_extract(
+    grass,
+    sf::st_as_sf(shp),
+    fun = "mean"
+  )
 
-  int$calc_area <- expanse(int) * 0.0001
+  shp$MOWING_EVENTS_2020 <- round(grassi, 2)
 
-  # compute weighted mean
-  risk_area <- tapply(int$calc_area, int$id, sum, na.rm = TRUE)
-
-  m0 <- match(shp$id, names(risk_area))
-
-  shp$FLOOD_RISK_AREA_HA_2020 <- ifelse(is.na(m0), 0, round(risk_area[m0], 3))
-
-  shp$FLOOD_RISK_AREA_PCT_2020 <-
-    round(shp$FLOOD_RISK_AREA_HA_2020 / shp$AREA_HA * 100, 2)
-
-  # mostly issue when rounding values for 1km cells
-  shp$FLOOD_RISK_AREA_PCT_2020[shp$FLOOD_RISK_AREA_PCT_2020 > 100] <- 100
-
-  fj <- paste0("FLOOD_RISK_AREA_PCT_2020_", labi, ".png")
   png(
-    file = file.path(fig_folder, fj),
+    file = file.path(fig_folder, paste0("MOWING_EVENTS_", labi, ".png")),
     width = 1200,
     height = 1000,
     res = 200
   )
   plot(
     shp,
-    y = "FLOOD_RISK_AREA_PCT_2020",
+    y = "MOWING_EVENTS_2020",
     border = NA,
-    main = paste("FLOOD_RISK_AREA_PCT_2020 -", i),
-    breaks = 6
+    main = paste("MOWING_EVENTS_2020 -", i),
   )
   dev.off()
 
   # export
-  out_fi <- paste0(gsub("S", "", labi), "_FLOODS_2020.csv")
+  out_fi <- paste0(gsub("S", "", labi), "_COPERNICUS_2020.csv")
 
   write.csv(
     data.frame(shp)[, names(shp) != "id"],

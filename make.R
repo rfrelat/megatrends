@@ -87,7 +87,8 @@ source(here::here("analysis", "02w_get_chelsa.R"))
 source(here::here("analysis", "02x_get_floods.R"))
 # Forest management
 source(here::here("analysis", "02y_get_forest.R"))
-# to be completed ...
+# Soil information
+source(here::here("analysis", "02z_get_soilgrids.R"))
 
 # 3. Merge everything
 source(here::here("analysis", "03_merge_indicators.R"))

@@ -97,6 +97,7 @@ for (i in scales) {
 
   nfl <- table(sph_fl$id)
   shp$FRAISLOCAL_N_2026 <- ifelse(shp$id %in% names(nfl), nfl[shp$id], 0)
+
   # SELLS
   nsell <- table(sph_fl$id[frais$categorie == "Point de vente"])
   shp$FRAISLOCAL_SHOPS_N_2026 <- ifelse(
@@ -112,27 +113,38 @@ for (i in scales) {
     0
   )
 
+  # distance to selling points
+  pt_shp <- centroids(shp)
+  distance_matrix <- distance(vente, pt_shp) # takes a long time with terra
+  # get the nearest distance
+  dist_vente <- apply(distance_matrix, 2, min)
+  # Check if point de vente in shape
+  int_vente <- is.related(shp, vente, "intersects")
+  # boxplot(dist_ea ~ shp_ea)
+  shp$FRAISLOCAL_SHOPS_DIST_KM_2026 <-
+    ifelse(int_vente, 0, round(dist_vente / 1000, 3))
+
   # Ag. Tourisme
   sph_pt <- extract(shp, pt_acc)
 
   npt <- table(sph_pt$id)
   shp$AGTOURISM_N_2026 <- ifelse(shp$id %in% names(npt), npt[shp$id], 0)
 
-  # distance to closest Accueil paysan
-  pt_shp <- centroids(shp)
-
   # takes a long time with terra
   distance_matrix <- distance(pt_acc, pt_shp)
   # get the nearest distance
   dist_amap <- apply(distance_matrix, 2, min)
-
+  # Check if amap in shape
+  int_amap <- is.related(shp, pt_acc, "intersects")
   # boxplot(dist_ea ~ shp_ea)
-  shp$AGTOURISM_DIST_KM_2026 <- round(dist_amap / 1000, 3)
+  shp$AGTOURISM_DIST_KM_2026 <-
+    ifelse(int_amap, 0, round(dist_amap / 1000, 3))
 
   var <- c(
     "FRAISLOCAL_N_2026",
     "FRAISLOCAL_SHOPS_N_2026",
     "FRAISLOCAL_PROD_N_2026",
+    "FRAISLOCAL_SHOPS_DIST_KM_2026",
     "AGTOURISM_N_2026",
     "AGTOURISM_DIST_KM_2026"
   )

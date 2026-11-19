@@ -41,7 +41,7 @@ fluidPage(
                             shinycssloaders::withSpinner(
                                    leafgl::leafglOutput(
                                           "mapvar",
-                                          height = 750
+                                          height = 600
                                    ),
                             )
                      )

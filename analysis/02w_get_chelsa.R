@@ -25,12 +25,13 @@ fig_folder <- here::here("figure")
 scales <- c("commune", "mailles_10km", "mailles_5km", "mailles_1km")
 
 convlab <- c(
-  "bio01" = "CHELSA_BIO01_ANNUAL_TEMP_DC",
-  "bio10" = "CHELSA_BIO10_SUMMER_TEMP_DC",
-  "bio12" = "CHELSA_BIO12_ANNUAL_PREC_MM",
-  "bio18" = "CHELSA_BIO18_SUMMER_PREC_MM",
-  "fcf" = "CHELSA_FCF_FROST_FREQ",
-  "spei12" = "CHELSA_SPEI12_WATER_BALANCE"
+  "bio01_1981-2010" = "CHELSA_BIO01_ANNUAL_TEMP_DC",
+  "bio10_1981-2010" = "CHELSA_BIO10_SUMMER_TEMP_DC",
+  "bio12_1981-2010" = "CHELSA_BIO12_ANNUAL_PREC_MM",
+  "bio18_1981-2010" = "CHELSA_BIO18_SUMMER_PREC_MM",
+  "fcf_1981-2010" = "CHELSA_FCF_FROST_FREQ",
+  "spei12_1981-2010" = "CHELSA_SPEI12_WATER_BALANCE_1981_2010",
+  "spei12_2009-2018" = "CHELSA_SPEI12_WATER_BALANCE_2009_2018"
 )
 
 # 2. Download CHELSA data ------------------------------------
@@ -76,7 +77,7 @@ for (i in selected) {
 
 # Chelsa drought indices
 # https://www.chelsa-climate.org/datasets/chelsa_annual
-yr <- 1981:2010 #2010
+yr <- 1981:2010 # 2010
 file_i <- paste0("CHELSA_spei12_", min(yr), "-", max(yr), "_Fr.tif")
 fileout <- file.path(data_folder, file_i)
 
@@ -104,7 +105,7 @@ if (!file.exists(fileout)) {
 
 # 3. Overlay and calculate statistics -----------------------------
 list_chelsa <- list.files(data_folder)
-lab <- gsub("^CHELSA_(.*)_1981-2010_Fr\\.tif$", "\\1", list_chelsa)
+lab <- gsub("^CHELSA_(.*)_Fr\\.tif$", "\\1", list_chelsa)
 newlab <- convlab[lab]
 chelsa <- rast(file.path(data_folder, list_chelsa))
 names(chelsa) <- lab
