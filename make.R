@@ -89,7 +89,9 @@ source(here::here("analysis", "02x_get_floods.R"))
 source(here::here("analysis", "02y_get_forest.R"))
 # Soil information
 source(here::here("analysis", "02z_get_soilgrids.R"))
-
+# Artificialisation area
+source(here::here("analysis", "02zz_get_artifarea.R"))
+#
 # 3. Merge everything
 source(here::here("analysis", "03_merge_indicators.R"))
 
